@@ -27,7 +27,7 @@ class AuthController extends Controller
                 'name' => $userData['name'],
                 'surname' => $userData['surname'],
                 'category' => null,
-                'avatar' => null
+                'avatar' => null,
             ]);
             $user = User::create([
                 'userInfo_id' => $userInfo->id,
@@ -36,10 +36,10 @@ class AuthController extends Controller
                 'password' => $userData['password']
             ]);
             Auth::attempt(['login' => $userData['login'], 'password' => $userData['password']]);
+            return response([
+                $user
+            ]);
         }
-        return response([
-            $user
-        ]);
     }
     public function login(Request $request)
     {
@@ -50,10 +50,11 @@ class AuthController extends Controller
         if (Auth::attempt(['login' => $userData['login'], 'password' => $userData['password']])) 
         {
             $user = Auth::user();
+            return response([
+                $user
+            ]);
         }
-        return response([
-            $user
-        ]);
+
     }
     public function logout(Request $request)
     {
@@ -69,5 +70,16 @@ class AuthController extends Controller
     {
         $auth = Auth::check();
         return response()->json($auth);
+    }
+    public function isLoginAvailability(Request $request)
+    {
+        if(User::where('login',$request->login)->exists())
+        {
+            return response()->json(false);
+        }
+        else 
+        {
+            return response()->json(true);
+        }
     }
 }

@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 class UserInfo extends Model
 {
     protected $table = 'userInfo';
-
     protected $fillable = [
         'name',
         'surname',
