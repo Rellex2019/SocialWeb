@@ -19,7 +19,6 @@ class AuthController extends Controller
             'login' => 'required|string|unique:users',
             'email' => 'required|email',
             'password' => 'required|string',
-            'password_repeat' => 'required|string|same:password'
         ]);
         if (!Auth::attempt(['login' => $userData['login'], 'password' => $userData['password']])) 
         {

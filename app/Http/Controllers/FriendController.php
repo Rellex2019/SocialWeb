@@ -22,8 +22,10 @@ class FriendController extends Controller
     {
         $user = $request->user();
         $friendIds= $user->friends()->pluck('friend_id')->toArray();
+        $requestToFriend = $user->friendRequest()->pluck('friend_id')->toArray();
         $allPeoples = User::with('userInfo')
         ->whereNotIn('id', $friendIds) 
+        ->whereNotIn('id', $requestToFriend)
         ->get();
         return response()->json($allPeoples);
     }
