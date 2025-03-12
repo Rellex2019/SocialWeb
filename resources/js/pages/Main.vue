@@ -13,9 +13,13 @@ b
             <p :style="{backgroundColor: loginAvailability==true? 'green' : 'red' }" v-if="!isLoadingAvailability && loginAvailability != null">Логин {{ dataReg.login }} {{ loginAvailability == true? 'свободен':'занят' }}</p>
 
             <p>ТВОИ ДРУЗЬЯ</p>
-            <p v-for="friendInfo in yourFriendsInfo" :key="friendInfo.id">{{ friendInfo.surname +' '+ friendInfo.name }}</p>
+            <p v-for="friendInfo in yourFriendsInfo" :key="friendInfo.id">{{ friendInfo.user_info.surname +' '+ friendInfo.user_info.name + friendInfo.id }}<button @click="deleteFriend(friendInfo.id)" class="btn">Удалить</button></p>
             <p>ВСЕ ЛЮДИ В МИРЕ</p>
-            <p v-for="people in allPeople">{{people.user_info.surname+' '+ people.user_info.name }} <button @click="addFriend(people.id)" class="btn">Добавить</button></p>
+            <p v-for="people in allPeople">{{people.user_info.surname+' '+ people.user_info.name+ people.id }} <button @click="sendRequestToFriend(people.id)" class="btn">Добавить</button></p>
+            <p>Заявки в друзья</p>
+            <p v-for="people in friendRequest">{{people.user_info.surname+' '+ people.user_info.name+ people.id }} <button @click="sendRequestToFriend(people.id)" class="btn">Принять</button></p>
+            <p>Отправленные мной заявки</p>
+            <p v-for="people in myRequest">{{people.user_info.surname+' '+ people.user_info.name+ people.id }} <button @click="deleteRequestToFriend(people.id)" class="btn">Отменить заявку</button></p>
         </div>
     </div>
 
@@ -48,7 +52,9 @@ export default {
 
             //Друзья все люди
             yourFriendsInfo: [],
-            allPeople: []
+            allPeople: [],
+            friendRequest:[],
+            myRequest:[]
         }
     },
     methods: {
@@ -109,9 +115,41 @@ export default {
                 this.allPeople = error.response;
             })
         },
-        addFriend(id)
+        getRequestsFromFriends()
         {
-            axios.post('/friend/addFriend', {'id': id})
+            axios.get('/friend/get_friend_request').then(response=>{
+                this.friendRequest = response.data;
+            })
+            .catch((error)=>{
+                this.friendRequest = error.response;
+            })
+        },
+        getRequestsFromFriends()
+        {
+            axios.get('/friend/get_user_request').then(response=>{
+                this.myRequest = response.data;
+            })
+            .catch((error)=>{
+                this.myRequest = error.response;
+            })
+        },
+        sendRequestToFriend(id)
+        {
+            axios.post('/friend/send_friend_request', {'id': id})
+            .then(response=>{
+                console.log(response.data)
+            })
+        },
+        deleteRequestToFriend(id)
+        {
+            axios.post('/friend/delete_friend_request', {'id': id})
+            .then(response=>{
+                console.log(response.data)
+            })
+        },
+        deleteFriend(id)
+        {
+            axios.post('/friend/delete_friend', {'id': id})
             .then(response=>{
                 console.log(response.data)
             })
@@ -120,6 +158,7 @@ export default {
     mounted(){
         this.getFriends();
         this.getPeople();
+        this.getRequestsFromFriends();
     }
 }
 </script>

@@ -53,7 +53,7 @@ class User extends Authenticatable
     {
         return $this->belongsTo(UserInfo::class, 'userInfo_id');
     }
-
+    //Друзья
     public function friends()
     {
         return $this->belongsToMany(User::class, 'friendships', 'user_id', 'friend_id');
@@ -62,6 +62,16 @@ class User extends Authenticatable
     public function friendOf()
     {
         return $this->belongsToMany(User::class, 'friendships', 'friend_id', 'user_id');
+    }
+    //Заявки
+    public function friendRequest()
+    {
+        return $this->belongsToMany(User::class, 'applications_friends', 'user_id', 'friend_id');
+    }
+
+    public function friendRequestOf()
+    {
+        return $this->belongsToMany(User::class, 'applications_friends', 'friend_id', 'user_id');
     }
 
     public function allFriends()
