@@ -22,7 +22,7 @@ Route::get('/friend/get_friend_request', [FriendController::class, 'getFriendReq
 Route::get('/friend/get_user_request', [FriendController::class, 'getUserRequest']);
 Route::post('/friend/send_friend_request', [FriendController::class, 'storeFriendRequest']);
 Route::post('/friend/delete_friend_request', [FriendController::class, 'deleteFriendRequest']);
-Route::post('/friend/delete_friend', [FriendController::class, 'deleteFriend']);
+Route::delete('/friend/delete_friend', [FriendController::class, 'deleteFriend']);
 
 
 //Удалить
@@ -33,6 +33,8 @@ Route::post('/friend/addFriend', [FriendController::class, 'storeFriend']);
 Route::get('/post/my_posts', [PostController::class, 'getMyPosts']);
 Route::get('/post/get_posts', [PostController::class, 'getPosts']);
 Route::post('/post/create', [PostController::class, 'storePost']);
+Route::delete('/post/user/delete/{id}', [PostController::class, 'deleteMyPost']);
+Route::patch('/post/user/change/{id}', [PostController::class, 'changeMyPost']);
 
 
 Route::get('/{any}', function () {

@@ -18,6 +18,8 @@
             <p>ТВОИ ДРУЗЬЯ</p>
             <p v-for="friendInfo in yourFriendsInfo" :key="friendInfo.id">{{ friendInfo.user_info.surname + ' ' +
                 friendInfo.user_info.name + friendInfo.id }}<button @click="deleteFriend(friendInfo.id)"
+                    class="btn">Удалить</button>
+                  <button @click="openChat(friendInfo.id)"
                     class="btn">Удалить</button></p>
             <p>ВСЕ ЛЮДИ В МИРЕ</p>
             <p v-for="people in allPeople">{{ people.user_info.surname + ' ' + people.user_info.name + people.id }}
@@ -34,7 +36,7 @@
             <p style="background-color: green;">ПОСТЫ</p>
             <button @click="createPost" class="btn">Создать пост</button>
             <p>МОИ ПОСТЫ</p>
-            <p v-for="post in myPosts"><p>Имя:{{post.title}}</p><p>Тело:{{ post.body }}</p></p>
+            <p v-for="post in myPosts"><p>Имя:{{post.title}}</p><p>Тело:{{ post.body }}<button class="btn" @click="deletePost(post.id)">Удалить пост {{ post.id }}</button><button class="btn" @click="changePost(post.id)">Изменить пост {{ post.id }}</button></p></p>
             <p>Все посты</p>
             <p v-for="post in allPosts"><p>Имя:{{post.title}}</p><p>Тело:{{ post.body }}</p></p>
 
@@ -116,6 +118,11 @@ export default {
                 })
         },
         //ДРУЗЬЯ
+        //Доделать темку
+        // openChat()
+        // {
+        //   router.push
+        // },
         getFriends() {
             axios.get('/friend').then(response => {
                 this.yourFriendsInfo = response.data;
@@ -175,16 +182,26 @@ export default {
                 })
         },
         deleteRequestToFriend(id) {
-            axios.post('/friend/delete_friend_request', { 'id': id })
+            axios.post(`/friend/delete_friend_request`, { 'id': id })
                 .then(response => {
                     console.log(response.data)
                 })
         },
         deleteFriend(id) {
-            axios.post('/friend/delete_friend', { 'id': id })
+            axios.delete('/friend/delete_friend', { 'id': id })
                 .then(response => {
                     console.log(response.data)
                 })
+        },
+
+
+
+        //ПОСТЫ
+        deletePost(id){
+            axios.delete(`/post/user/delete/${id}`, {'id': id})
+            .then(response=>{
+              console.log(response.data);
+            })
         },
         createPost() {
             axios.post('/post/create', {
@@ -194,7 +211,15 @@ export default {
                 .then(response => {
                     console.log(response.data)
                 })
+        },
+        changePost(id)
+        {
+          axios.patch(`/post/user/change/${id}`,{
+            'title': 'CHANGED',
+            'body': 'CHANGED'
+          })
         }
+
     },
     mounted() {
         this.getFriends();
