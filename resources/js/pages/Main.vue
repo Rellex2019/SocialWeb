@@ -2,7 +2,7 @@
     <div class="outer-padding">
         <div class="container-main-block">
             <div class="main-block">
-                b
+            
             </div>
             <button class="btn" @click="sendDataForRegistration">Registration</button>
             <button class="btn" @click="sendDataForAuth">Authorization</button>
@@ -19,10 +19,11 @@
             <p v-for="friendInfo in yourFriendsInfo" :key="friendInfo.id">{{ friendInfo.user_info.surname + ' ' +
                 friendInfo.user_info.name + friendInfo.id }}<button @click="deleteFriend(friendInfo.id)"
                     class="btn">Удалить</button>
-                  <button @click="openChat(friendInfo.id)"
-                    class="btn">Удалить</button></p>
+                <button @click="openChat(friendInfo.id)" class="btn">Открыть чат</button>
+            </p>
             <p>ВСЕ ЛЮДИ В МИРЕ</p>
             <p v-for="people in allPeople">{{ people.user_info.surname + ' ' + people.user_info.name + people.id }}
+                <!-- Исправить когда будет Vuex на  v-if="people.id != Твой id" -->
                 <button @click="sendRequestToFriend(people.id)" class="btn">Добавить</button>
             </p>
             <p>Заявки в друзья</p>
@@ -36,9 +37,16 @@
             <p style="background-color: green;">ПОСТЫ</p>
             <button @click="createPost" class="btn">Создать пост</button>
             <p>МОИ ПОСТЫ</p>
-            <p v-for="post in myPosts"><p>Имя:{{post.title}}</p><p>Тело:{{ post.body }}<button class="btn" @click="deletePost(post.id)">Удалить пост {{ post.id }}</button><button class="btn" @click="changePost(post.id)">Изменить пост {{ post.id }}</button></p></p>
+            <p v-for="post in myPosts">
+            <p>Имя:{{ post.title }}</p>
+            <p>Тело:{{ post.body }}<button class="btn" @click="deletePost(post.id)">Удалить пост {{ post.id
+                    }}</button><button class="btn" @click="changePost(post.id)">Изменить пост {{ post.id }}</button></p>
+            </p>
             <p>Все посты</p>
-            <p v-for="post in allPosts"><p>Имя:{{post.title}}</p><p>Тело:{{ post.body }}</p></p>
+            <p v-for="post in allPosts">
+            <p>Имя:{{ post.title }}</p>
+            <p>Тело:{{ post.body }}</p>
+            </p>
 
         </div>
     </div>
@@ -117,12 +125,12 @@ export default {
                     this.loginAvailability = null;
                 })
         },
-        //ДРУЗЬЯ
-        //Доделать темку
-        // openChat()
-        // {
-        //   router.push
-        // },
+        // ДРУЗЬЯ
+        // Доделать темку
+        openChat(id)
+        {
+            this.$router.push(`/chat/${id}`)
+        },
         getFriends() {
             axios.get('/friend').then(response => {
                 this.yourFriendsInfo = response.data;
@@ -197,11 +205,13 @@ export default {
 
 
         //ПОСТЫ
-        deletePost(id){
-            axios.delete(`/post/user/delete/${id}`, {'id': id})
-            .then(response=>{
-              console.log(response.data);
-            })
+        deletePost(id) {
+            axios.delete(`/post/user/delete/${id}`, { 'id': id })
+                .then(response => {
+                    console.log(response.data);
+                    this.getMyPosts();
+                    this.getAllPosts();
+                })
         },
         createPost() {
             axios.post('/post/create', {
@@ -209,15 +219,20 @@ export default {
                 "body": "BODYDOY"
             })
                 .then(response => {
-                    console.log(response.data)
+                    console.log(response.data);
+                    this.getMyPosts();
+                    this.getAllPosts();
                 })
         },
-        changePost(id)
-        {
-          axios.patch(`/post/user/change/${id}`,{
-            'title': 'CHANGED',
-            'body': 'CHANGED'
-          })
+        changePost(id) {
+            axios.patch(`/post/user/change/${id}`, {
+                'title': 'CHANGED',
+                'body': 'CHANGED'
+            })
+            .then(response=>{
+                this.getMyPosts();
+                this.getAllPosts();
+            })
         }
 
     },

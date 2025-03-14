@@ -84,18 +84,17 @@ class User extends Authenticatable
     {
         return $this->hasMany(Post::class, 'user_id', );
     }
-        public function messages()
+    public function sentMessages()
     {
-        return $this->belongsToMany(User::class, 'friendships', 'user_id', 'friend_id');
+        return $this->hasMany(Message::class, 'user_id');
     }
-
-    public function messagesOf()
+    public function receivedMessages()
     {
-        return $this->belongsToMany(User::class, 'friendships', 'friend_id', 'user_id');
+        return $this->hasMany(Message::class, 'friend_id');
     }
-    //НАДО ПРОВЕРИТЬ С union  вместо unionAll- он типо удаляет дубликаты
+    
     public function allMessages()
     {
-        return $this->messages()->unionAll($this->messagesOf());
+        return $this->sentMessages()->union($this->receivedMessages());
     }
 }

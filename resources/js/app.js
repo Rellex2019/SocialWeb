@@ -7,7 +7,7 @@ import App from './App.vue';
 import { createRouter, createWebHistory } from 'vue-router';
 
 import Main from './pages/Main.vue';
-
+import Chat from './pages/Chat.vue';
 
 
 const router = createRouter({
@@ -16,6 +16,10 @@ const router = createRouter({
             path: '/',
             component: Main
         },
+        {
+            path: '/chat/:id',
+            component: Chat
+        }
     ],
     history: createWebHistory()
 })
