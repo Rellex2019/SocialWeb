@@ -185,7 +185,7 @@ export default {
                 })
         },
         getAllPosts() {
-            axios.get('/post/my_posts').then(response => {
+            axios.get('/post/get_posts').then(response => {
                 this.allPosts = response.data;
             })
                 .catch((error) => {
