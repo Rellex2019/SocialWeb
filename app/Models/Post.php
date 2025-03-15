@@ -13,4 +13,8 @@ class Post extends Model
         'status',
         'published_at',
     ];
+    public function photos()
+    {
+        return $this->hasMany(Photo::class);
+    }
 }

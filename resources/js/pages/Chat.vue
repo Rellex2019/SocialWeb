@@ -5,7 +5,9 @@
     </div>
     <div class="container" ref="messagesContainer">
         <div v-for="message in allMessages" :key="message.id" style="border: 1px solid red;">
-            <div v-html="message.content"></div>
+            <div class="space" style="display: flex; justify-content: space-between;">
+                <div v-html="message.content"></div>{{ message.created_at }}
+            </div>
             <img v-if="message.file_path" :src="linkApp + '/' + message.file_path"
                 style="max-width: 450px; max-height: 500px;">
         </div>

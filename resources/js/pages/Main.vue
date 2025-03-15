@@ -2,7 +2,7 @@
     <div class="outer-padding">
         <div class="container-main-block">
             <div class="main-block">
-            
+
             </div>
             <button class="btn" @click="sendDataForRegistration">Registration</button>
             <button class="btn" @click="sendDataForAuth">Authorization</button>
@@ -35,17 +35,28 @@
                 <button @click="deleteRequestToFriend(people.id)" class="btn">Отменить заявку</button>
             </p>
             <p style="background-color: green;">ПОСТЫ</p>
+            <input class="btn" placeholder="название" v-model="postInput.title" name="title" type="text">
+            <input class="btn" placeholder="текст" v-model="postInput.body" name="body" type="text">
+            <input type="file" multiple @change="handlePhotoUpload" accept="image/*">
             <button @click="createPost" class="btn">Создать пост</button>
             <p>МОИ ПОСТЫ</p>
-            <p v-for="post in myPosts">
+            <p v-for="post in myPosts" :key="post.id" class="btn">
             <p>Имя:{{ post.title }}</p>
-            <p>Тело:{{ post.body }}<button class="btn" @click="deletePost(post.id)">Удалить пост {{ post.id
-                    }}</button><button class="btn" @click="changePost(post.id)">Изменить пост {{ post.id }}</button></p>
+            <p>Тело:{{ post.body }}
+                <div class="space">
+                    <img v-for="photo in post.photos" :key="photo.id"  :src="linkApp+'/'+photo.path" style="width: 100px; height: auto; margin: 5px;" >
+                </div>
+                <button class="btn" @click="deletePost(post.id)">Удалить пост {{ post.id }}</button>
+                <button class="btn" @click="changePost(post.id)">Изменить пост {{ post.id }}</button>
+            </p>
             </p>
             <p>Все посты</p>
-            <p v-for="post in allPosts">
+            <p v-for="post in allPosts" :key="post.id" class="btn">
             <p>Имя:{{ post.title }}</p>
             <p>Тело:{{ post.body }}</p>
+            <div class="space">
+                    <img v-for="photo in post.photos" :key="photo.id"  :src="linkApp+'/'+photo.path" style="width: 100px; height: auto; margin: 5px;" >
+                </div>
             </p>
 
         </div>
@@ -59,6 +70,7 @@ export default {
     name: 'Main',
     data() {
         return {
+            linkApp: '',
             dataReg:
             {
                 "name": "Кирилл",
@@ -86,6 +98,8 @@ export default {
             //Посты
             myPosts: [],
             allPosts: [],
+            postInput: []
+            
         }
     },
     methods: {
@@ -127,8 +141,7 @@ export default {
         },
         // ДРУЗЬЯ
         // Доделать темку
-        openChat(id)
-        {
+        openChat(id) {
             this.$router.push(`/chat/${id}`)
         },
         getFriends() {
@@ -214,9 +227,17 @@ export default {
                 })
         },
         createPost() {
-            axios.post('/post/create', {
-                "title": "jojo",
-                "body": "BODYDOY"
+            const formData = new FormData();
+            formData.append('title', this.postInput.title);
+            formData.append('body', this.postInput.body);
+            this.postInput.photos.forEach(file => {
+                formData.append('photos[]', file);
+            });
+
+            axios.post('/post/create', formData, {
+                headers: {
+                    "Content-Type": 'multipart/form-data'
+                }
             })
                 .then(response => {
                     console.log(response.data);
@@ -229,10 +250,15 @@ export default {
                 'title': 'CHANGED',
                 'body': 'CHANGED'
             })
-            .then(response=>{
-                this.getMyPosts();
-                this.getAllPosts();
-            })
+                .then(response => {
+                    this.getMyPosts();
+                    this.getAllPosts();
+                })
+        },
+        handlePhotoUpload(event) {
+            const selectedPhotos = Array.from(event.target.files);
+            this.postInput.photos = selectedPhotos;
+            console.log(this.postInput.photos)
         }
 
     },
@@ -243,6 +269,9 @@ export default {
         this.getMyRequestsToFriends();
         this.getMyPosts();
         this.getAllPosts();
+    },
+    created() {
+        this.linkApp = `${import.meta.env.VITE_APP_URL}/storage`;
     }
 }
 </script>
@@ -250,5 +279,8 @@ export default {
 .btn {
     border: 2px solid violet;
     margin-right: 20px;
+}
+.space{
+    display: flex;
 }
 </style>

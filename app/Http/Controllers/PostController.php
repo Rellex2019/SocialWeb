@@ -14,15 +14,23 @@ class PostController extends Controller
       'title' => 'required',
       'body' => 'required',
     ]);
-    Post::create([
+    $post = Post::create([
       ...$validated,
-      'user_id' => $user->id
+      'user_id' => $user->id,
+      'published_at' => now(),
+      'status' => 'published'
     ]);
+    if ($request->hasFile('photos')) {
+      foreach ($request->file('photos') as $file) {
+        $path = $file->store('photos', 'public'); 
+        $post->photos()->create(['path' => $path]);
+      }
+    }
     return response()->json('Пост создан');
   }
   public function getMyPosts(Request $request)
   {
-    $posts = $request->user()->posts;
+    $posts = $request->user()->posts()->with('photos')->get();
     return response()->json($posts);
   }
 
@@ -45,6 +53,5 @@ class PostController extends Controller
   {
     $posts = Post::all();
     return response()->json($posts);
-    
   }
 }
