@@ -45,8 +45,10 @@ Route::middleware('auth:sanctum')->group(function(){
     Route::delete('/post/user/delete/{id}', [PostController::class, 'deleteMyPost']);
     Route::patch('/post/user/change/{id}', [PostController::class, 'changeMyPost']);
     //Лайки
-    Route::post('/post/{id}/like', [PostController::class, 'addLike']);
-
+    Route::post('/post/{id}/like', [PostController::class, 'toggleLike']);
+    //Комментарии - надо сделать
+    Route::post('post/{id}/comment', [PostController::class, 'storeComment']);
+    Route::get('post/{id}/comment', [PostController::class, 'getComment']);
 });
 
 

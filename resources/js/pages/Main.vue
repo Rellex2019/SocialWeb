@@ -34,34 +34,75 @@
             <p v-for="people in myRequest">{{ people.user_info.surname + ' ' + people.user_info.name + people.id }}
                 <button @click="deleteRequestToFriend(people.id)" class="btn">Отменить заявку</button>
             </p>
+
+
+
             <p style="background-color: green;">ПОСТЫ</p>
             <input class="btn" placeholder="название" v-model="postInput.title" name="title" type="text">
             <input class="btn" placeholder="текст" v-model="postInput.body" name="body" type="text">
             <input type="file" multiple @change="handlePhotoUpload" accept="image/*">
             <select @change="selectCategory" id="categories" class="btn">
-                <option v-for="category in categories" :key="category.id" :value="category.id"
-                    >{{ category.name }}</option>
+                <option v-for="category in categories" :key="category.id" :value="category.id">{{ category.name }}
+                </option>
             </select>
             <button @click="createPost" class="btn">Создать пост</button>
+
+
             <p>МОИ ПОСТЫ</p>
             <p v-for="post in myPosts" :key="post.id" class="btn">
-            <p style="display: flex; justify-content: space-between;">Имя:{{ post.title }} <div class="likes">{{ post.likes[0] }}</div></p>
-            <p>Тело:{{ post.body }}
+            <p style="display: flex; justify-content: space-between;">Имя:{{ post.title }}
+            <div class="likes">Лайки:{{ post.likes.length }}</div>
+            </p>
+            <p style="display: flex; justify-content: space-between;">Тело:{{ post.body }} <button
+                    @click="toggleLike(post.id)" class="btn">Поставить лайк</button></p>
+
             <div class="space">
                 <img v-for="photo in post.photos" :key="photo.id" :src="linkApp + '/' + photo.path"
                     style="width: 100px; height: auto; margin: 5px;">
             </div>
             <button class="btn" @click="deletePost(post.id)">Удалить пост {{ post.id }}</button>
             <button class="btn" @click="changePost(post.id)">Изменить пост {{ post.id }}</button>
+            <button class="btn" @click="openComments(post.id)">Посмотреть коментарии {{ post.id }}</button>
+            <div v-if="isModalOpen == post.id">
+                <p>Комментарии</p>
+                <p v-for="comment in comments" :key="comment.comment.id" style="border: 1px solid red;">
+                    <div>{{ comment.user.name +' '+comment.user.surname}}</div>
+                    <div style="display: flex; justify-content: space-between;"><div>{{ comment.comment.body }}</div><div>{{ comment.comment.created_at }}</div></div>
+                    
+                </p>
+                <input type="text" class="btn" v-model="commentInput" placeholder="Введите ваш коментарий">
+                <button @click="addComment(post.id)" class="btn">Отправить комментарий</button>
+                <button @click="closeComments(post.id)" class="btn">Закрыть комментарий</button>
+            </div>
             </p>
-            </p>
+
+
+
             <p>Все посты</p>
             <p v-for="post in allPosts" :key="post.id" class="btn">
-            <p style="display: flex; justify-content: space-between;">Имя:{{ post.title }} <div class="likes">Лайки:{{ post.likes.length }}</div></p>
-            <p style="display: flex; justify-content: space-between;">Тело:{{ post.body }} <button @click="addLike(post.id)" class="btn">Поставить лайк</button></p>
+            <p style="display: flex; justify-content: space-between;">Имя:{{ post.title }}
+            <div class="likes">Лайки:{{ post.likes.length }}</div>
+            </p>
+            <p style="display: flex; justify-content: space-between;">Тело:{{ post.body }} <button
+                    @click="toggleLike(post.id)" class="btn">Поставить лайк</button></p>
             <div class="space">
                 <img v-for="photo in post.photos" :key="photo.id" :src="linkApp + '/' + photo.path"
                     style="width: 100px; height: auto; margin: 5px;">
+            </div>
+            <button class="btn" @click="openComments(post.id)">Посмотреть коментарии {{ post.id }}</button>
+
+            <!-- Убрать false и установить, id != user_id или чет такое, чтобы сразу два мод окна не отрывалось
+            МОИ ПОСТЫ И ВСЕ ПОСТЫ -->
+            <div v-if="isModalOpen == post.id && false">
+                <p>Комментарии</p>
+                <p v-for="comment in comments" :key="comment.comment.id" style="border: 1px solid red;">
+                    <div>{{ comment.user.name +' '+comment.user.surname}}</div>
+                    <div style="display: flex; justify-content: space-between;"><div>{{ comment.comment.body }}</div><div>{{ comment.comment.created_at }}</div></div>
+                    
+                </p>
+                <input type="text" class="btn" v-model="commentInput" placeholder="Введите ваш коментарий">
+                <button @click="addComment(post.id)" class="btn">Отправить комментарий</button>
+                <button @click="closeComments(post.id)" class="btn">Закрыть комментарий</button>
             </div>
             </p>
 
@@ -108,7 +149,10 @@ export default {
             //Категории
             categories: [],
             selectedCategory: 1,
-
+            //Коментарии
+            isModalOpen: null,
+            commentInput: '',
+            comments: [],
         }
     },
     methods: {
@@ -282,17 +326,39 @@ export default {
             this.postInput.photos = selectedPhotos;
             console.log(this.postInput.photos)
         },
-                    //Лайк
-        addLike(postId)
+        //Лайк
+        toggleLike(postId) {
+            axios.post(`/post/${postId}/like`, {})
+                .then(response => {
+                    console.log(response.data);
+                    this.getAllPosts();
+                })
+        },
+        //Комментарий
+        async openComments(postId)
         {
-            axios.post(`/post/${postId}/like`,{})
+            this.isModalOpen = postId;
+            await axios.get(`/post/${postId}/comment`)
             .then(response=>{
-                console.log(response.data);
+                this.comments = response.data;
             })
+            
+        },
+        closeComments()
+        {
+            this.isModalOpen=null;
+            this.comments = [];
+        },
+        addComment(postId) {
+            axios.post(`/post/${postId}/comment`, {'body': this.commentInput})
+                .then(response => {
+                    console.log(response.data);
+                    this.commentInput = '';
+                    this.openComments(postId);
+                })
         },
         //Категории
-        selectCategory(event)
-        {
+        selectCategory(event) {
             this.selectedCategory = event.target.value;
         }
 

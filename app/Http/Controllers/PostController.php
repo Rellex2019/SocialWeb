@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use App\Models\Comment;
 use App\Models\Post;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -33,10 +35,22 @@ class PostController extends Controller
   }
   public function getMyPosts(Request $request)
   {
-    $posts = $request->user()->posts()->with('photos')->get();
+    $posts = $request->user()->posts()->with('photos', 'likes')->get();
+    foreach($posts as $post)
+    {
+      $post->likes->makeHidden(['pivot']);
+    }
     return response()->json($posts);
   }
-
+  public function getPosts(Request $request)
+  {
+    $posts = Post::with('photos', 'likes')-> get();
+    foreach($posts as $post)
+    {
+      $post->likes->makeHidden(['pivot']);
+    }
+    return response()->json($posts);
+  }
   public function deleteMyPost(Request $request)
   {
     $user = $request->user();
@@ -52,24 +66,18 @@ class PostController extends Controller
     ]);
     return response()->json('Пост под id изменен:' . $changedPost);
   }
-  public function getPosts(Request $request)
-  {
-    $posts = Post::with('photos', 'likes')-> get();
-    foreach($posts as $post)
-    {
-      $post->likes->makeHidden(['pivot']);
-    }
-    return response()->json($posts);
-  }
+
   public function getCategories(Request $request)
   {
     $categories = Category::all();
     return response()->json($categories);
   }
-  public function addLike(Request $request, $postId)
+
+  //Лайки
+  public function toggleLike(Request $request, $id)
   {
     $userId = $request->user()->id;
-    $like = DB::table('likes')->where('post_id', $postId)->where('user_id', $userId)->first();
+    $like = DB::table('likes')->where('post_id', $id)->where('user_id', $userId)->first();
     if($like)
     {
       DB::table('likes')->where('id', $like->id)->delete();
@@ -77,10 +85,35 @@ class PostController extends Controller
     }
     else {
       DB::table('likes')->insert([
-        'post_id'=> $postId,
+        'post_id'=> $id,
         'user_id'=> $userId
       ]);
     }
     return response()->json(['message' => 'Лайк добавлен']);
   }
+  //Комментарии 
+
+  public function getComment(Request $request, $id)
+  {
+    $comments = Comment::where('post_id', $id)->get();
+    $commentsWithUser = $comments->map(function ($comment){
+      $user = User::find($comment->user_id);
+      return [
+        'comment'=> $comment,
+        'user' => $user->userInfo
+      ];
+    });
+    return response()->json($commentsWithUser);
+  }
+  public function storeComment(Request $request, $id)
+  {
+    $user = $request->user();
+    $comment = Comment::create([
+      'user_id'=> $user->id,
+      'post_id'=> $id,
+      'body' => $request->body
+    ]);
+    return response()->json(['message' => 'Комментарий был создан']);
+  }
+
 }
