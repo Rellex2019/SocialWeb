@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use App\Models\Post;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class PostController extends Controller
 {
@@ -13,6 +15,7 @@ class PostController extends Controller
     $validated = $request->validate([
       'title' => 'required',
       'body' => 'required',
+      'category_id' => 'required|exists:categories,id'
     ]);
     $post = Post::create([
       ...$validated,
@@ -51,7 +54,33 @@ class PostController extends Controller
   }
   public function getPosts(Request $request)
   {
-    $posts = Post::with('photos')->get();
+    $posts = Post::with('photos', 'likes')-> get();
+    foreach($posts as $post)
+    {
+      $post->likes->makeHidden(['pivot']);
+    }
     return response()->json($posts);
+  }
+  public function getCategories(Request $request)
+  {
+    $categories = Category::all();
+    return response()->json($categories);
+  }
+  public function addLike(Request $request, $postId)
+  {
+    $userId = $request->user()->id;
+    $like = DB::table('likes')->where('post_id', $postId)->where('user_id', $userId)->first();
+    if($like)
+    {
+      DB::table('likes')->where('id', $like->id)->delete();
+      return response()->json(['message'=> 'Лайк удален']);
+    }
+    else {
+      DB::table('likes')->insert([
+        'post_id'=> $postId,
+        'user_id'=> $userId
+      ]);
+    }
+    return response()->json(['message' => 'Лайк добавлен']);
   }
 }

@@ -38,25 +38,31 @@
             <input class="btn" placeholder="название" v-model="postInput.title" name="title" type="text">
             <input class="btn" placeholder="текст" v-model="postInput.body" name="body" type="text">
             <input type="file" multiple @change="handlePhotoUpload" accept="image/*">
+            <select @change="selectCategory" id="categories" class="btn">
+                <option v-for="category in categories" :key="category.id" :value="category.id"
+                    >{{ category.name }}</option>
+            </select>
             <button @click="createPost" class="btn">Создать пост</button>
             <p>МОИ ПОСТЫ</p>
             <p v-for="post in myPosts" :key="post.id" class="btn">
-            <p>Имя:{{ post.title }}</p>
+            <p style="display: flex; justify-content: space-between;">Имя:{{ post.title }} <div class="likes">{{ post.likes[0] }}</div></p>
             <p>Тело:{{ post.body }}
-                <div class="space">
-                    <img v-for="photo in post.photos" :key="photo.id"  :src="linkApp+'/'+photo.path" style="width: 100px; height: auto; margin: 5px;" >
-                </div>
-                <button class="btn" @click="deletePost(post.id)">Удалить пост {{ post.id }}</button>
-                <button class="btn" @click="changePost(post.id)">Изменить пост {{ post.id }}</button>
+            <div class="space">
+                <img v-for="photo in post.photos" :key="photo.id" :src="linkApp + '/' + photo.path"
+                    style="width: 100px; height: auto; margin: 5px;">
+            </div>
+            <button class="btn" @click="deletePost(post.id)">Удалить пост {{ post.id }}</button>
+            <button class="btn" @click="changePost(post.id)">Изменить пост {{ post.id }}</button>
             </p>
             </p>
             <p>Все посты</p>
             <p v-for="post in allPosts" :key="post.id" class="btn">
-            <p>Имя:{{ post.title }}</p>
-            <p>Тело:{{ post.body }}</p>
+            <p style="display: flex; justify-content: space-between;">Имя:{{ post.title }} <div class="likes">Лайки:{{ post.likes.length }}</div></p>
+            <p style="display: flex; justify-content: space-between;">Тело:{{ post.body }} <button @click="addLike(post.id)" class="btn">Поставить лайк</button></p>
             <div class="space">
-                    <img v-for="photo in post.photos" :key="photo.id"  :src="linkApp+'/'+photo.path" style="width: 100px; height: auto; margin: 5px;" >
-                </div>
+                <img v-for="photo in post.photos" :key="photo.id" :src="linkApp + '/' + photo.path"
+                    style="width: 100px; height: auto; margin: 5px;">
+            </div>
             </p>
 
         </div>
@@ -98,8 +104,11 @@ export default {
             //Посты
             myPosts: [],
             allPosts: [],
-            postInput: []
-            
+            postInput: [],
+            //Категории
+            categories: [],
+            selectedCategory: 1,
+
         }
     },
     methods: {
@@ -192,6 +201,14 @@ export default {
                     this.allPosts = error.response;
                 })
         },
+        getCategories() {
+            axios.get('/get/categories').then(response => {
+                this.categories = response.data;
+            })
+                .catch((error) => {
+                    this.categories = error.response;
+                })
+        },
 
 
 
@@ -230,9 +247,14 @@ export default {
             const formData = new FormData();
             formData.append('title', this.postInput.title);
             formData.append('body', this.postInput.body);
-            this.postInput.photos.forEach(file => {
-                formData.append('photos[]', file);
-            });
+            console.log(this.selectedCategory);
+            formData.append('category_id', this.selectedCategory);
+            if (this.postInput.photos) {
+                this.postInput.photos.forEach(file => {
+                    formData.append('photos[]', file);
+                });
+            }
+
 
             axios.post('/post/create', formData, {
                 headers: {
@@ -259,16 +281,30 @@ export default {
             const selectedPhotos = Array.from(event.target.files);
             this.postInput.photos = selectedPhotos;
             console.log(this.postInput.photos)
+        },
+                    //Лайк
+        addLike(postId)
+        {
+            axios.post(`/post/${postId}/like`,{})
+            .then(response=>{
+                console.log(response.data);
+            })
+        },
+        //Категории
+        selectCategory(event)
+        {
+            this.selectedCategory = event.target.value;
         }
 
     },
     mounted() {
+        this.getAllPosts();
+        this.getCategories();
         this.getFriends();
         this.getPeople();
         this.getRequestsFromFriends();
         this.getMyRequestsToFriends();
         this.getMyPosts();
-        this.getAllPosts();
     },
     created() {
         this.linkApp = `${import.meta.env.VITE_APP_URL}/storage`;
@@ -280,7 +316,8 @@ export default {
     border: 2px solid violet;
     margin-right: 20px;
 }
-.space{
+
+.space {
     display: flex;
 }
 </style>

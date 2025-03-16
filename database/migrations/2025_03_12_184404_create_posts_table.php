@@ -13,12 +13,13 @@ return new class extends Migration
     {
         Schema::create('posts', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade'); // Внешний ключ на таблицу users
+            $table->foreignId('user_id')->constrained()->onDelete('cascade'); 
+            $table->foreignId('category_id')->constrained()->onDelete('cascade');
             $table->string('title'); 
             $table->text('body'); 
             $table->timestamps();
-            $table->timestamp('published_at')->nullable(); // Дата публикации (опционально)
-            $table->string('status')->default('draft'); // Статус поста (опционально)
+            $table->timestamp('published_at')->nullable(); 
+            $table->string('status')->default('draft'); 
         });
     }
 

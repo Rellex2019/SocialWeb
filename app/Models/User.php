@@ -97,4 +97,8 @@ class User extends Authenticatable
     {
         return $this->sentMessages()->union($this->receivedMessages());
     }
+    public function likes()
+    {
+        return $this->belongsToMany(Post::class,'likes','user_id','post_id');
+    }
 }

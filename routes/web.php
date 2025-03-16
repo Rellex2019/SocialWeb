@@ -14,6 +14,11 @@ Route::get('/logout', [AuthController::class, 'logout']);
 Route::get('/check_auth', [AuthController::class, 'isAuth']);
 Route::post('/check/login_availability', [AuthController::class, 'isLoginAvailability']);
 
+//ПОСТы без авторизации
+    Route::get('/post/get_posts', [PostController::class, 'getPosts']);
+//Категори без авторизации
+    Route::get('/get/categories', [PostController::class, 'getCategories']);
+
 
 //- нужно авторизоваться--------------Добавить потом в middleware группу
 Route::middleware('auth:sanctum')->group(function(){
@@ -36,10 +41,11 @@ Route::middleware('auth:sanctum')->group(function(){
 
     //Посты
     Route::get('/post/my_posts', [PostController::class, 'getMyPosts']);
-    Route::get('/post/get_posts', [PostController::class, 'getPosts']);
     Route::post('/post/create', [PostController::class, 'storePost']);
     Route::delete('/post/user/delete/{id}', [PostController::class, 'deleteMyPost']);
     Route::patch('/post/user/change/{id}', [PostController::class, 'changeMyPost']);
+    //Лайки
+    Route::post('/post/{id}/like', [PostController::class, 'addLike']);
 
 });
 
