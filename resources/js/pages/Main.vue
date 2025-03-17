@@ -29,6 +29,7 @@
             <p>Заявки в друзья</p>
             <p v-for="people in friendRequest">{{ people.user_info.surname + ' ' + people.user_info.name + people.id }}
                 <button @click="sendRequestToFriend(people.id)" class="btn">Принять</button>
+                <button @click="deleteRequestToFriend(people.id)" class="btn">Отклонить</button>
             </p>
             <p>Отправленные мной заявки</p>
             <p v-for="people in myRequest">{{ people.user_info.surname + ' ' + people.user_info.name + people.id }}
@@ -194,8 +195,13 @@ export default {
         },
         // ДРУЗЬЯ
         // Доделать темку
-        openChat(id) {
-            this.$router.push(`/chat/${id}`)
+        async openChat(friendId) {
+            await axios.post(`/chat/${friendId}/message`,{})
+            .then(response=>{
+                console.log(response.data);
+                this.$router.push(`/chat/${friendId}`)
+            })
+
         },
         getFriends() {
             axios.get('/friend').then(response => {
@@ -270,7 +276,7 @@ export default {
                 })
         },
         deleteFriend(id) {
-            axios.delete('/friend/delete_friend', { 'id': id })
+            axios.delete(`/friend/${id}/delete`, {})
                 .then(response => {
                     console.log(response.data)
                 })

@@ -10,8 +10,7 @@ class Message extends Model
     use HasFactory;
     protected $table = 'messages';
     protected $fillable = [
-        'user_id',
-        'friend_id',
+        'chat_id',
         'content',
         'file_path'
     ];
@@ -24,5 +23,9 @@ class Message extends Model
     public function friend()
     {
         return $this->belongsTo(User::class, 'friend_id');
+    }
+    public function chat()
+    {
+        return $this->hasOne(Chat::class);
     }
 }

@@ -11,7 +11,7 @@ class FriendController extends Controller
     public function getFriend(Request $request)
     {
         $user = $request->user();
-        $friends = $user->friends()->with('userInfo')->get();
+        $friends = $user->allFriends()->with('userInfo')->get();
         $friendsInfo = $friends->map(function ($friend) {
             return  $friend;
         });
@@ -21,50 +21,87 @@ class FriendController extends Controller
     public function getPeople(Request $request)
     {
         $user = $request->user();
-        $friendIds= $user->friends()->pluck('friend_id')->toArray();
-        $requestToFriend = $user->friendRequest()->pluck('friend_id')->toArray();
+        $friendIds = $user->allFriends()->pluck('id')->toArray();
+        $requestToFriend = $user->allFriendRequests()->pluck('id')->toArray();
         $allPeoples = User::with('userInfo')
-        ->whereNotIn('id', $friendIds) 
-        ->whereNotIn('id', $requestToFriend)
-        ->get();
+            ->whereNotIn('id', $friendIds)
+            ->whereNotIn('id', $requestToFriend)
+            ->where('id', '!=', $user->id)
+            ->get();
         return response()->json($allPeoples);
     }
     public function storeFriendRequest(Request $request)
     {
         $user = $request->user();
-    
-        $application = DB::table('applications_friends')
-        ->where('friend_id', $request->id)
-        ->where('user_id', $user->id)
-        ->first();
-        if($application)
-        {
-            DB::table('friendships')->insert([
-                'user_id'=> $user->id,
-                'friend_id'=> $request->id,
-            ]);
-            DB::table('applications_friends')->where('id', $application->id)->delete();
+        $friendId = $request->id;
 
-        }
-        else{
-            $user->friendRequest()->attach($request->id);
-            return response([
-                'Заявка отправлена',
-                'id'=> $request->id
+        $application = DB::table('applications_friends')
+            ->where(function ($query) use ($user, $friendId) {
+                $query->where('friend_id', $friendId)
+                    ->where('user_id', $user->id);
+            })
+            ->orWhere(function ($query) use ($user, $friendId) {
+                $query->where('friend_id', $user->id)
+                    ->where('user_id', $friendId);
+            })->first();
+        if ($application && $application->friend_id == $user->id) {
+            DB::table('friendships')->insert([
+                'user_id' => $user->id,
+                'friend_id' => $friendId,
             ]);
+            DB::table('applications_friends')
+                ->where('id', $application->id)
+                ->delete();
+            return response([
+                'Друг добавлен',
+                'id' => $request->id
+            ]);
+        } else {
+            if ($application) {
+                return response([
+                    'Заявка уже была отправлена, дождитесь ответа',
+                ]);
+            } else {
+                $user->friendRequest()->attach($friendId);
+                return response([
+                    'Заявка отправлена',
+                    'id' => $friendId
+                ]);
+            }
         }
     }
     public function deleteFriendRequest(Request $request)
     {
         $user = $request->user();
-        $user->friendRequest()->detach($request->id);
-        return response()->json();
+        $friendId = $request->id;
+        $friendRequest = DB::table('applications_friends')
+            ->where('user_id', $user->id)
+            ->where('friend_id', $friendId)
+            ->orWhere('user_id', $friendId)
+            ->where('friend_id', $user->id)
+            ->first();
+
+        if ($friendRequest && ($friendRequest->user_id === $user->id || $friendRequest->friend_id === $user->id)) {
+            DB::table('applications_friends')->where('id', $friendRequest->id)->delete();
+            return response()->json(['message' => 'Запрос на дружбу удален.']);
+        }
+        return response()->json(['message' => 'Запрос на дружбу не найден или у вас нет прав для его удаления.'], 404);
     }
-    public function deleteFriend(Request $request)
+    public function deleteFriend(Request $request, $id)
     {
         $user = $request->user();
-        $user->friends()->detach($request->id);
-        return response()->json();
+        $friendId = $id;
+        $friendRequest = DB::table('friendships')
+            ->where('user_id', $user->id)
+            ->where('friend_id', $friendId)
+            ->orWhere('user_id', $friendId)
+            ->where('friend_id', $user->id)
+            ->first();
+        if ($friendRequest && ($friendRequest->user_id === $user->id || $friendRequest->friend_id === $user->id)) {
+            DB::table('friendships')->where('id', $friendRequest->id)->delete();
+            return response()->json(['message' => 'Пользователь был удален из друзей.']);
+        }
+        return response()->json(['message' => 'Друг не найден или у вас нет прав для его удаления.'], 404);
     }
     public function getFriendRequest(Request $request)
     {
@@ -77,14 +114,5 @@ class FriendController extends Controller
         $user = $request->user();
         $requestToFriend = $user->friendRequest()->with('userInfo')->get();
         return response()->json($requestToFriend);
-    }
-    public function storeFriend(Request $request)
-    {
-        $user = $request->user();
-        $user->friends()->attach($request->id);
-        return response([
-            'Друг добавлен',
-            'id'=> $request->id
-        ]);
     }
 }

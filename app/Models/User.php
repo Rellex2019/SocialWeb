@@ -65,6 +65,16 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(User::class, 'friendships', 'friend_id', 'user_id');
     }
+    public function allFriends()
+    {
+        $friendsQuery = $this->friends()
+            ->select('users.id as id', 'users.userInfo_id') // Убедитесь, что здесь указаны те же столбцы
+            ->getQuery();
+        $friendOfQuery = $this->friendOf()
+            ->select('users.id as id', 'users.userInfo_id') // Здесь также должны быть те же столбцы
+            ->getQuery();
+        return $friendsQuery->union($friendOfQuery);
+    }
     //Заявки
     public function friendRequest()
     {
@@ -75,30 +85,32 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(User::class, 'applications_friends', 'friend_id', 'user_id');
     }
-
-    public function allFriends()
+    public function allFriendRequests()
     {
-        return $this->friends()->union($this->friendOf());
+        $requestToFriend = $this->friendRequest()
+            ->select('applications_friends.friend_id as id', 'users.userInfo_id') 
+            ->getQuery();
+
+        $requestFromFriend = $this->friendRequestOf()
+            ->select('applications_friends.user_id as id', 'users.userInfo_id') 
+            ->getQuery();
+
+        return $requestToFriend->union($requestFromFriend);
     }
+
+
+
+    
     public function posts()
     {
-        return $this->hasMany(Post::class, 'user_id', );
+        return $this->hasMany(Post::class, 'user_id',);
     }
-    public function sentMessages()
+    public function chat()
     {
-        return $this->hasMany(Message::class, 'user_id');
-    }
-    public function receivedMessages()
-    {
-        return $this->hasMany(Message::class, 'friend_id');
-    }
-    
-    public function allMessages()
-    {
-        return $this->sentMessages()->union($this->receivedMessages());
+        return $this->hasMany(Chat::class, 'user_id');
     }
     public function likes()
     {
-        return $this->belongsToMany(Post::class,'likes','user_id','post_id');
+        return $this->belongsToMany(Post::class, 'likes', 'user_id', 'post_id');
     }
 }
