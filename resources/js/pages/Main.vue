@@ -19,7 +19,7 @@
             <p v-for="friendInfo in yourFriendsInfo" :key="friendInfo.id">{{ friendInfo.user_info.surname + ' ' +
                 friendInfo.user_info.name + friendInfo.id }}<button @click="deleteFriend(friendInfo.id)"
                     class="btn">Удалить</button>
-                <button @click="openChat(friendInfo.id)" class="btn">Открыть чат</button>
+                <button @click="openChat(friendInfo.id, friendInfo.chats?friendInfo.chats.id:null)" class="btn">Открыть чат</button>
             </p>
             <p>ВСЕ ЛЮДИ В МИРЕ</p>
             <p v-for="people in allPeople">{{ people.user_info.surname + ' ' + people.user_info.name + people.id }}
@@ -195,13 +195,11 @@ export default {
         },
         // ДРУЗЬЯ
         // Доделать темку
-        async openChat(friendId) {
-            await axios.post(`/chat/${friendId}/message`,{})
+        async openChat(friendId, chatId) {
+            await axios.post(`/chat/${friendId}/message/`,{chatId})
             .then(response=>{
-                console.log(response.data);
-                this.$router.push(`/chat/${friendId}`)
+                this.$router.push(`/chat/${response.data.chatId}`)
             })
-
         },
         getFriends() {
             axios.get('/friend').then(response => {

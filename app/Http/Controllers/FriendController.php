@@ -12,11 +12,22 @@ class FriendController extends Controller
     {
         $user = $request->user();
         $friends = $user->allFriends()->with('userInfo')->get();
-        $friendsInfo = $friends->map(function ($friend) {
-            return  $friend;
-        });
+        foreach ($friends as $friend) {
+            $friend->chats = $friend->chats()
+            ->where('user_id', $user->id)
+            ->orWhere('friend_id', $user->id)
+            ->first();
+        }
 
-        return response()->json($friendsInfo);
+
+        // $friendsInfo = $friends->map(function ($friend) {
+        //   return  [
+        //     ...$friend,
+        //     $friend->chat()
+        //   ];
+        // });
+
+        return response()->json($friends);
     }
     public function getPeople(Request $request)
     {

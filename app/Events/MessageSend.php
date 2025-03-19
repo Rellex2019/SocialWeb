@@ -7,10 +7,11 @@ use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class MessageSend implements ShouldBroadcast
+class MessageSend implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
@@ -18,9 +19,9 @@ class MessageSend implements ShouldBroadcast
     /**
      * Create a new event instance.
      */
-    public function __construct($message)
+    public function __construct($messageData)
     {
-        $this->message = $message;
+        $this->message = $messageData;
     }
 
     /**
@@ -31,7 +32,7 @@ class MessageSend implements ShouldBroadcast
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('chat.'.$this->message->user_id),
+            new PrivateChannel('chat.' . $this->message->chat_id),
         ];
     }
 }

@@ -14,23 +14,28 @@ class MessageController extends Controller
     public function openChat(Request $request, $friendId)
     {
         $user = $request->user();
-        $chatExists = Chat::where('user_id', $user->id)
-        ->where('friend_id', $friendId)
-        ->orWhere('user_id', $friendId)
-        ->where('friend_id', $user->id)->get();
-
-    if (!$chatExists) {
-        $newChat = Chat::create([
-            'name' => $user->userInfo->name.' '.$user->userInfo->surname,
+        // $chatExists = Chat::where('user_id', $user->id)
+        //   ->where('friend_id', $friendId)
+        //   ->orWhere('user_id', $friendId)
+        //   ->where('friend_id', $user->id)->get();
+        
+    
+        if (!$request->chatId) {
+          $newChat = Chat::create([
+            'name' => $user->userInfo->name . ' ' . $user->userInfo->surname,
             'user_id' => $user->id,
             'friend_id' => $friendId
-        ]);
-        return response()->json(['message' => 'Чат создан']);
-    }
-    else{
-        return response()->json(['message' => 'Чат существует']);
-    }
-
+          ]);
+          return response()->json([
+            'message' => 'Чат создан',
+            'chatId' => $newChat->id
+          ]);
+        } else {
+          return response()->json([
+            'message' => 'Чат существует',
+            'chatId' => $request->chatId
+          ]);
+        }
     }
     public function storeMessage(Request $request, $id)
     {
@@ -38,18 +43,13 @@ class MessageController extends Controller
             'content' => 'nullable|string|max:255',
             'file' => 'nullable|file|max:204800'
         ]);
-        if (!User::find($id)) {
-            return response()->json(['message' => 'Пользователь не найден.'], 404);
+        $chatExists = Chat::find($id);
+        if (!$chatExists) {
+            return response()->json(['message' => 'Чат не найден.'], 404);
         }
 
 
         $user = $request->user();
-
-        $chatExists = Chat::where('user_id', $user->id)
-            ->where('friend_id', $id)
-            ->orWhere('user_id', $id)
-            ->where('friend_id', $user->id)->first();
-
         if ($chatExists) {
             $message = [
                 'chat_id' => $chatExists->id,
@@ -61,10 +61,8 @@ class MessageController extends Controller
                 $message['file_path'] = $path;
             }
             $messageData = Message::create($message);
-
-
-            event(new MessageSend($messageData));
-
+            
+            broadcast(new MessageSend($messageData))->toOthers();
 
             return response()->json([
                 'message' => 'Сообщение отправлено',
@@ -87,7 +85,7 @@ class MessageController extends Controller
                 $message['file_path'] = $path;
             }
             $messageData = Message::create($message);
-            event(new MessageSend($messageData));
+            broadcast(new MessageSend($messageData))->toOthers();
             return response()->json([
                 'message' => 'Чат создан, сообщение отправлено',
                 'data' => $messageData,
@@ -104,10 +102,7 @@ class MessageController extends Controller
         //     ->orderBy('created_at', 'asc')
         //     ->get();
         $user = $request->user();
-        $messages = $user->chat()
-            ->where('user_id', $user->id)
-            ->orderBy('created_at', 'asc')
-            ->get();
+        $messages = Chat::find($id)->messages;
         return response()->json($messages);
     }
 }

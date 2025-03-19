@@ -2,7 +2,6 @@
 
 namespace App\Listeners;
 
-use App\Events\MessageSend;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 
@@ -19,8 +18,8 @@ class NewMessageNotification
     /**
      * Handle the event.
      */
-    public function handle(MessageSend $event): void
+    public function handle(object $event): void
     {
-        // $event->message
+        //
     }
 }

@@ -18,11 +18,14 @@
     <button @click="sendMessage" style="border: 1px solid black;">Отправить</button>
 </template>
 <script>
+import Echo from 'laravel-echo';
+import { reactive } from 'vue';
+
 export default {
     name: 'Chat',
     data() {
         return {
-            friendId: this.$route.params.id,
+            chatId: this.$route.params.id,
             inputData: '',
             selectedFile: null,
             allMessages: [],
@@ -31,9 +34,15 @@ export default {
     },
     methods: {
         getMessages() {
-            axios.get(`/chat/${this.friendId}/messages`)
+            axios.get(`/chat/${this.chatId}/messages`)
                 .then(response => {
                     this.allMessages = response.data;
+                })
+                .catch(e =>{
+                    if(e.status === 403)
+                {
+                    this.$router.push('/')
+                }
                 })
         },
         async sendMessage() {
@@ -42,16 +51,14 @@ export default {
             if (this.selectedFile) {
                 formData.append('file', this.selectedFile);
             }
-
-
-            await axios.post(`/chat/${this.friendId}/message/send`, formData, {
+            await axios.post(`/chat/${this.chatId}/message/send`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 }
             })
                 .then(response => {
                     console.log(response.data);
-                    this.getMessages();
+                    this.allMessages.push(response.data.data);
                     this.inputData = '';
                     this.selectedFile = null;
                     this.scrollToBottom();
@@ -80,10 +87,19 @@ export default {
 
     mounted() {
         this.getMessages();
+
+        window.Echo.private(`chat.${this.chatId}`)
+        .listen('MessageSend',(e)=>{
+            console.log(e);
+            this.allMessages.push(e.message);
+        })
+        .error((error) => {
+        console.error('Ошибка при подключении к каналу:', error);
+    });
     },
     created() {
         this.linkApp = `${import.meta.env.VITE_APP_URL}/storage`;
-    }
+    },
 
 }
 </script>

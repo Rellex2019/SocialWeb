@@ -105,9 +105,12 @@ class User extends Authenticatable
     {
         return $this->hasMany(Post::class, 'user_id',);
     }
-    public function chat()
+    public function chats()
     {
-        return $this->hasMany(Chat::class, 'user_id');
+        return Chat::where(function ($query){
+            $query->where('user_id', $this->id)
+            ->orWhere('friend_id', $this->id);
+        });
     }
     public function likes()
     {
