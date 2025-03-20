@@ -58,7 +58,7 @@ export default {
             })
                 .then(response => {
                     console.log(response.data);
-                    this.allMessages.push(response.data.data);
+                    // this.allMessages.push(response.data.data);
                     this.inputData = '';
                     this.selectedFile = null;
                     this.scrollToBottom();

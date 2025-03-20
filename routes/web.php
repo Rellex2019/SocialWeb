@@ -34,13 +34,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/friend/{id}/delete', [FriendController::class, 'deleteFriend']);
 
     //Сообщения
-    Route::middleware(CheckChatPermission::class)->group(function (){
+    // Route::middleware(CheckChatPermission::class)->group(function (){
         Route::post('/chat/{id}/message/send', [MessageController::class, 'storeMessage']);
 
         Route::post('/chat/{friendId}/message', [MessageController::class, 'openChat']);
     
         Route::get('/chat/{id}/messages', [MessageController::class, 'getMessage']);
-    });
+    // });
     //---------------------------------
 
 
