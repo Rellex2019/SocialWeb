@@ -163,6 +163,9 @@ export default {
                     console.log('Зарегистрирован', response.data);
                 })
         },
+
+
+        
         sendDataForAuth() {
             axios.post('/login', this.dataLog)
                 .then(response => {
