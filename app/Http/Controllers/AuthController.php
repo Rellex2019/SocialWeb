@@ -7,6 +7,7 @@ use App\Models\UserInfo;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
 
 class AuthController extends Controller
@@ -35,9 +36,7 @@ class AuthController extends Controller
                 'password' => $userData['password']
             ]);
             Auth::attempt(['login' => $userData['login'], 'password' => $userData['password']]);
-            return response([
-                $user
-            ]);
+            return response()->json($user->load('userInfo'));
         }
     }
     public function login(Request $request)
@@ -48,11 +47,10 @@ class AuthController extends Controller
         ]);
         if (Auth::attempt(['login' => $userData['login'], 'password' => $userData['password']])) 
         {
-            $user = Auth::user();
-            return response([
-                $user
-            ]);
+            $user = Auth::user()->load('userInfo');
+            return response()->json($user);
         }
+        return response()->json(['message' => 'Unauthorized'], 401);
 
     }
     public function logout(Request $request)
@@ -70,6 +68,13 @@ class AuthController extends Controller
         $auth = Auth::check();
         return response()->json($auth);
     }
+    public function getUser(Request $request)
+    {
+        $user = $request->user()->load('userInfo');
+        $allFriend = $user->allFriends()->with('userInfo')->get();
+        $user->all_friends = $allFriend;
+        return response()->json($user);
+    }
     public function isLoginAvailability(Request $request)
     {
         if(User::where('login',$request->login)->exists())
@@ -80,5 +85,27 @@ class AuthController extends Controller
         {
             return response()->json(true);
         }
+    }
+    public function changeLogin(Request $request)
+    {
+        $user = $request->user();
+        if(!User::where('login',$request->login)->get())
+        {
+            User::where('id', $user->id)->update(['login' => $request->login]);
+            return response()->json(['message' => 'Логин успешно изменен.'], 200);
+        }
+        return response()->json(['message' => 'Логин занят.'], 403);
+    }
+    public function changePassword(Request $request)
+    {
+        $user = $request->user();
+        if (Hash::check($request['password_old'], $user->password)) 
+        {
+            $hashedPassword = Hash::make($request->password_new);
+            User::where('id', $user->id)->update(['password' => $hashedPassword]);
+            return response()->json(['message' => 'Пароль успешно изменен.'], 200);
+        }
+        return response()->json(['message' => 'Старый пароль невереный.'], 403);
+
     }
 }

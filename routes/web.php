@@ -24,6 +24,15 @@ Route::get('post/{id}/comment', [PostController::class, 'getComment']);
 
 //- нужно авторизоваться--------------Добавить потом в middleware группу
 Route::middleware('auth:sanctum')->group(function () {
+
+    //Смена логина
+    Route::patch('/user/login/edit', [AuthController::class, 'changeLogin']);
+    //Смена пароля
+    Route::patch('/user/password/edit', [AuthController::class, 'changePassword']);
+
+    Route::get('/user/info', [AuthController::class, 'getUser']);
+
+
     //Друзья 
     Route::get('/friend', [FriendController::class, 'getFriend']);
     Route::get('/people', [FriendController::class, 'getPeople']);

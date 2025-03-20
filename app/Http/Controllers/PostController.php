@@ -35,19 +35,21 @@ class PostController extends Controller
   }
   public function getMyPosts(Request $request)
   {
-    $posts = $request->user()->posts()->with('photos', 'likes')->get();
+    $posts = $request->user()->posts()->with('photos', 'likes', 'user.userInfo', 'category')->get();
     foreach($posts as $post)
     {
       $post->likes->makeHidden(['pivot']);
+      $post->makeHidden(['user_id', 'category_id']);
     }
     return response()->json($posts);
   }
   public function getPosts(Request $request)
   {
-    $posts = Post::with('photos', 'likes')-> get();
+    $posts = Post::with(['photos', 'likes', 'user.userInfo', 'category'])-> get();
     foreach($posts as $post)
     {
       $post->likes->makeHidden(['pivot']);
+      $post->makeHidden(['user_id', 'category_id']);
     }
     return response()->json($posts);
   }

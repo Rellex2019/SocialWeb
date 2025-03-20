@@ -104,7 +104,7 @@
 </template>
 <script>
 import axios from "axios";
-import { RouterLink } from "vue-router";
+import { mapGetters } from 'vuex/dist/vuex.cjs.js';
 
 export default {
     name: "Registration",
@@ -126,7 +126,8 @@ export default {
     methods: {
         sendDataForRegistration() {
             axios.post("/signup", this.dataReg).then((response) => {
-                console.log("Зарегистрирован", response.data);
+                this.$router.push('/');
+                this.$store.commit('authStore/setUser', response.data);
             });
         },
         async checkAvailability() {
@@ -149,6 +150,15 @@ export default {
     },
     created() {
         this.linkApp = `${import.meta.env.VITE_APP_URL}`;
+    },
+    mounted()
+    {
+        if (this.isAuthenticated) {
+            this.$router.push('/')
+        }
+    },
+    computed: {
+        ...mapGetters('authStore', ['isAuthenticated', 'user']),
     },
 };
 </script>

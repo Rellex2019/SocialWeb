@@ -10,26 +10,11 @@
     </div>
     <form class="regs" @submit.prevent="sendDataForAuth">
         <label for="" class="Auth at">Авторизация</label>
-
         <div class="form-group">
-            <input
-                v-model="dataLog.login"
-                type="text"
-                class="form"
-                id="login"
-                name="login"
-                value=""
-                placeholder="Логин"
-            />
-            <input
-                v-model="dataLog.password"
-                type="password"
-                class="form"
-                id="passsword"
-                name="password"
-                value=""
-                placeholder="Пароль"
-            />
+            <input v-model="dataLog.login" type="text" class="form" id="login" name="login" value=""
+                placeholder="Логин" />
+            <input v-model="dataLog.password" type="password" class="form" id="passsword" name="password" value=""
+                placeholder="Пароль" />
         </div>
 
         <div class="form-group">
@@ -38,15 +23,17 @@
             </button>
         </div>
 
-        <label for="" class="auth"
-            >У вас нет аккаунта?
-            <a class="auth2" href="/registr.html">
-                <span style="color: #a185e9"> Зарегистрироваться</span></a
-            ></label
-        >
+        <label for="" class="auth">У вас нет аккаунта?
+            <RouterLink class="auth2" to="/registration">
+                <span style="color: #a185e9"> Зарегистрироваться</span>
+            </RouterLink>
+        </label>
     </form>
 </template>
 <script>
+import { RouterLink } from 'vue-router';
+import { mapGetters } from 'vuex/dist/vuex.cjs.js';
+
 export default {
     name: "Auth",
     data() {
@@ -60,14 +47,27 @@ export default {
     },
     methods: {
         sendDataForAuth() {
-            axios.post("/login", this.dataLog).then((response) => {
-                console.log("Авторизован", response.data);
+            axios.post("/login", this.dataLog)
+            .then((response) => {
+                this.$router.push('/');
+                this.$store.commit('authStore/setUser', response.data);
             });
         },
+
+    },
+    computed: {
+        ...mapGetters('authStore', ['isAuthenticated', 'user']),
     },
     created() {
+
         this.linkApp = `${import.meta.env.VITE_APP_URL}`;
     },
+    mounted()
+    {
+        if (this.isAuthenticated) {
+            this.$router.push('/')
+        }
+    }
 };
 </script>
 <style scoped>
@@ -75,6 +75,7 @@ body {
     margin: 0;
     font-family: "Unbounded", serif;
 }
+
 .form {
     padding-left: 0.78vw;
 
@@ -89,11 +90,13 @@ body {
     font-weight: 400;
     font-size: 1.04vw;
 }
+
 .regs {
     display: grid;
 
     place-items: center;
 }
+
 .Auth {
     margin-top: 13vw;
     margin-bottom: 2.6vw;
@@ -101,6 +104,7 @@ body {
     font-size: 1.67vw;
     color: #865df8;
 }
+
 /* Для современных браузеров */
 ::placeholder {
     color: #d1c0ff;
@@ -137,6 +141,7 @@ body {
     display: inline-block;
     cursor: pointer;
 }
+
 .lab_lonf {
     width: 21.77vw;
     margin-top: 0.52vw;
@@ -186,6 +191,7 @@ body {
     position: relative;
     z-index: -30;
 }
+
 .backgr_main {
     /* position: absolute; */
     position: fixed;
@@ -199,6 +205,7 @@ body {
     position: relative;
     z-index: -30;
 }
+
 .backgr_main2 {
     /* position: absolute; */
     position: fixed;
@@ -234,9 +241,11 @@ body {
         padding-left: 4vw;
         margin-top: 1vw;
     }
+
     .form-group {
         margin-top: 10vw;
     }
+
     .btn-reg {
         width: 93.75vw;
         height: 10vw;
@@ -250,6 +259,7 @@ body {
         width: 95vw;
         line-height: 4vw;
     }
+
     .silka_reg {
         font-size: 3vw;
         margin-top: 5vw;

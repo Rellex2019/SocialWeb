@@ -10,7 +10,13 @@ export default {
     name: 'App',
     components:{
 
+    },
+    beforeCreate()
+    {
+        this.$store.commit('authStore/initializeStore');
+
     }
+    
 };
 
 </script>
