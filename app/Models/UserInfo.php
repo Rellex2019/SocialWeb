@@ -11,6 +11,7 @@ class UserInfo extends Model
         'name',
         'surname',
         'category',
-        'avatar'
+        'avatar',
+        'quote'
     ];
 }

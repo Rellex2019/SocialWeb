@@ -96,7 +96,7 @@ class FriendController extends Controller
             DB::table('applications_friends')->where('id', $friendRequest->id)->delete();
             return response()->json(['message' => 'Запрос на дружбу удален.']);
         }
-        return response()->json(['message' => 'Запрос на дружбу не найден или у вас нет прав для его удаления.'], 404);
+        return response()->json(['message' => 'Запрос на дружбу не найден или у вас нет прав для его удаления.'], 403);
     }
     public function deleteFriend(Request $request, $id)
     {

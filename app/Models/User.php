@@ -6,6 +6,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -13,7 +14,7 @@ use Laravel\Sanctum\HasApiTokens;
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasApiTokens;
+    use HasFactory, Notifiable, HasApiTokens, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -25,7 +26,8 @@ class User extends Authenticatable
         'login',
         'email',
         'password',
-        'userInfo_id'
+        'userInfo_id',
+        'role_id'
     ];
 
 
@@ -88,11 +90,11 @@ class User extends Authenticatable
     public function allFriendRequests()
     {
         $requestToFriend = $this->friendRequest()
-            ->select('applications_friends.friend_id as id', 'users.userInfo_id') 
+            ->select('applications_friends.friend_id as id', 'users.userInfo_id')
             ->getQuery();
 
         $requestFromFriend = $this->friendRequestOf()
-            ->select('applications_friends.user_id as id', 'users.userInfo_id') 
+            ->select('applications_friends.user_id as id', 'users.userInfo_id')
             ->getQuery();
 
         return $requestToFriend->union($requestFromFriend);
@@ -100,20 +102,31 @@ class User extends Authenticatable
 
 
 
-    
+    public function categories()
+    {
+        return $this->belongsToMany(Category::class, 'user_categories');
+    }
     public function posts()
     {
         return $this->hasMany(Post::class, 'user_id',);
     }
     public function chats()
     {
-        return Chat::where(function ($query){
+        return Chat::where(function ($query) {
             $query->where('user_id', $this->id)
-            ->orWhere('friend_id', $this->id);
+                ->orWhere('friend_id', $this->id);
         });
     }
     public function likes()
     {
         return $this->belongsToMany(Post::class, 'likes', 'user_id', 'post_id');
+    }
+    public function role()
+    {
+        return $this->belongsTo(Role::class);
+    }
+    public function isAdmin()
+    {
+        return $this->role && $this->role->name === 'admin';
     }
 }

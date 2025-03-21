@@ -18,23 +18,24 @@ class MessageController extends Controller
         //   ->where('friend_id', $friendId)
         //   ->orWhere('user_id', $friendId)
         //   ->where('friend_id', $user->id)->get();
-        
-    
+        $friend = User::find($friendId);
+
         if (!$request->chatId) {
-          $newChat = Chat::create([
-            'name' => $user->userInfo->name . ' ' . $user->userInfo->surname,
-            'user_id' => $user->id,
-            'friend_id' => $friendId
-          ]);
-          return response()->json([
-            'message' => 'Чат создан',
-            'chatId' => $newChat->id
-          ]);
+            $newChat = Chat::create([
+                'name' => $friend->userInfo->name . ' ' . $friend->userInfo->surname,
+                'user_id' => $user->id,
+                'friend_id' => $friendId,
+
+            ]);
+            return response()->json([
+                'message' => 'Чат создан',
+                'chatId' => $newChat->id
+            ]);
         } else {
-          return response()->json([
-            'message' => 'Чат существует',
-            'chatId' => $request->chatId
-          ]);
+            return response()->json([
+                'message' => 'Чат существует',
+                'chatId' => $request->chatId
+            ]);
         }
     }
     public function storeMessage(Request $request, $id)
@@ -53,7 +54,8 @@ class MessageController extends Controller
         if ($chatExists) {
             $message = [
                 'chat_id' => $chatExists->id,
-                'content' => $request->content
+                'content' => $request->content,
+                'user_id' => $user->id
             ];
             if ($request->hasFile('file')) {
                 $file = $request->file('file');
@@ -61,7 +63,7 @@ class MessageController extends Controller
                 $message['file_path'] = $path;
             }
             $messageData = Message::create($message);
-            
+
             broadcast(new MessageSend($messageData))->toOthers();
 
             return response()->json([
@@ -70,14 +72,14 @@ class MessageController extends Controller
             ]);
         } else {
             $newChat = Chat::create([
-                'name' => $user->userInfo->name.' '.$user->userInfo->surname,
+                'name' => $user->userInfo->name . ' ' . $user->userInfo->surname,
                 'user_id' => $user->id,
                 'friend_id' => $id
             ]);
-
             $message = [
                 'chat_id' => $newChat->id,
-                'content' => $request->content
+                'content' => $request->content,
+                'user_id' => $user->id
             ];
             if ($request->hasFile('file')) {
                 $file = $request->file('file');
@@ -92,6 +94,7 @@ class MessageController extends Controller
             ]);
         }
     }
+
     public function getMessage(Request $request, $id)
     {
         // $messages = $request->user()->allMessages()
@@ -101,8 +104,52 @@ class MessageController extends Controller
         //     })
         //     ->orderBy('created_at', 'asc')
         //     ->get();
+        $chat = Chat::find($id);
         $user = $request->user();
-        $messages = Chat::find($id)->messages;
-        return response()->json($messages);
+        $messages = $chat->messages;
+
+        $users = User::whereIn('id', [$chat->user_id, $chat->friend_id])->with('userInfo')->get();
+        $data = [
+            'users' => $users,
+            'chat' => $chat
+        ];
+
+
+        return response()->json($data);
+    }
+    public function deleteMessage(Request $request, $id)
+    {
+
+        $message = Message::where('id', $id)->where('user_id', $request->user()->id)->first();
+        if($message)
+        {
+            Message::find($id)->delete();
+            broadcast(new MessageSend($message))->toOthers();
+            return response()->json([$message]);
+        }
+        return response()->json(['message'=>'Сообщения не существует или же у вас нет прав']);
+    }
+    public function getChats(Request $request)
+    {
+        $user = $request->user();
+
+        // Получаем чаты, в которых участвует пользователь
+        $chats = Chat::where('user_id', $user->id)
+            ->orWhere('friend_id', $user->id)
+            ->with(['messages' => function ($query) {
+                $query->orderBy('updated_at', 'desc'); // Сортируем сообщения по updated_at
+            }])
+            ->get();
+
+        // Добавляем последнее сообщение в каждый чат
+        $data = [
+            'chats' => $chats->map(function ($chat) {
+                return [
+                    'chat' => $chat,
+                    'last_message' => $chat->messages->first(), // Получаем последнее сообщение
+                ];
+            }),
+        ];
+        return response()->json($data);
     }
 }

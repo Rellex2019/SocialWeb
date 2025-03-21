@@ -12,7 +12,9 @@ class Message extends Model
     protected $fillable = [
         'chat_id',
         'content',
-        'file_path'
+        'file_path',
+        'user_id',
+        'isRead'
     ];
 
     public function user()

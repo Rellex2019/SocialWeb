@@ -7,29 +7,29 @@
                 </div>
                 <div class="links_page">
                     <img :src="linkApp + '/img/icons/profile.png'" alt="" class="icon_link" />
-                    <a href="/profile.html" class="name_link">Профиль</a>
+                    <RouterLink :to="`/profile/${user.id}`" class="name_link">Профиль</RouterLink>
                 </div>
                 <div class="links_page">
                     <img :src="linkApp + '/img/icons/icons_chat.png'" alt="" class="icon_link" />
-                    <a href="/my_chat.html" class="name_link">Мои чаты</a>
+                    <RouterLink to='/chats/user' class="name_link">Мои чаты</RouterLink>
                 </div>
                 <div class="links_page">
                     <img :src="linkApp + '/img/icons/icons_news.png'" alt="" class="icon_link" />
-                    <a href="/index.html" class="name_link">Новости</a>
+                    <RouterLink to='/' class="name_link">Новости</RouterLink>
                 </div>
                 <div class="links_page">
                     <img :src="linkApp + '/img/icons/icons_friends.png'" alt="" class="icon_link" />
-                    <a href="/my_friends.html" class="name_link">Друзья</a>
+                    <RouterLink to='/friends' class="name_link">Друзья</RouterLink> 
                 </div>
                 <div class="links_page">
                     <img :src="linkApp + '/img/icons/icons_new_post.png'" alt="" class="icon_link" />
-                    <a href="/new_post.html" class="name_link">Создать пост</a>
+                    <RouterLink to="/post/create" class="name_link">Создать пост</RouterLink>
                 </div>
-                <div class="links_page">
+                <div class="links_page" v-if="user.role_id == 1">
                     <img :src="linkApp + '/img/icons/icons_category.png'" alt="" class="icon_link" />
                     <a href="/category.html" class="name_link">Категории</a>
                 </div>
-                <div class="links_page">
+                <div class="links_page"v-if="user.role_id == 1">
                     <img :src="linkApp + '/img/icons/icons_category.png'" alt="" class="icon_link" />
                     <a href="/new_category.html" class="name_link">Создать категорию</a>
                 </div>
@@ -65,6 +65,9 @@
     </div>
 </template>
 <script>
+import { RouterLink } from 'vue-router';
+import { mapGetters } from 'vuex/dist/vuex.cjs.js';
+
 export default{
     name: 'sideMenu',
     data(){
@@ -86,6 +89,9 @@ export default{
                 console.log(response.data);
             });
         },
+    },
+    computed: {
+        ...mapGetters('authStore', ['isAuthenticated', 'user']),
     },
     created() {
         this.linkApp = `${import.meta.env.VITE_APP_URL}`;

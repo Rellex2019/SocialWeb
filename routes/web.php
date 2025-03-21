@@ -30,7 +30,12 @@ Route::middleware('auth:sanctum')->group(function () {
     //Смена пароля
     Route::patch('/user/password/edit', [AuthController::class, 'changePassword']);
 
-    Route::get('/user/info', [AuthController::class, 'getUser']);
+    Route::post('/user/info/edit', [UserController::class, 'changeUserInfo']);
+
+    Route::get('/user/info/{id}', [AuthController::class, 'getUser']);
+
+    Route::delete('/user/account/delete', [AuthController::class, 'deleteAccount']);
+
 
 
     //Друзья 
@@ -45,16 +50,21 @@ Route::middleware('auth:sanctum')->group(function () {
     //Сообщения
     // Route::middleware(CheckChatPermission::class)->group(function (){
         Route::post('/chat/{id}/message/send', [MessageController::class, 'storeMessage']);
+        Route::delete('/chat/{id}/message/delete', [MessageController::class, 'deleteMessage']);
 
         Route::post('/chat/{friendId}/message', [MessageController::class, 'openChat']);
     
         Route::get('/chat/{id}/messages', [MessageController::class, 'getMessage']);
+        Route::get('/chat/users/get', [MessageController::class, 'getChats']);
     // });
     //---------------------------------
 
+    //категории
+    Route::patch('/user/category/change', [PostController::class, 'changeCategories']);
+    Route::get('/user/category', [PostController::class, 'getUserCategories']);
 
     //Посты
-    Route::get('/post/my_posts', [PostController::class, 'getMyPosts']);
+    Route::get('/posts/user/{id}', [PostController::class, 'getUserPosts']);
     Route::post('/post/create', [PostController::class, 'storePost']);
     Route::delete('/post/user/delete/{id}', [PostController::class, 'deleteMyPost']);
     Route::patch('/post/user/change/{id}', [PostController::class, 'changeMyPost']);

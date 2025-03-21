@@ -8,48 +8,73 @@
 
         <div class="form-container">
 
-                <div class="image-preview" id="imagePreview">
-                    <button type="button" class="upload-btn" onclick="document.getElementById('imageUpload').click();">
-                        <img class="pr_edit" :src="linkApp + '/img/edit_pr.png'" alt=""></button>
-                    <input type="file" id="imageUpload" name="imageUpload" accept="image/*" style="display:none;"
-                        onchange="previewImage(event)">
-
-                </div>
-                <input class="in_name_category" id="postText" name="postText" placeholder="Кирилл Зятчин"
-                    required></input>
+            <div class="image-preview" id="imagePreview">
+                <button type="button" class="upload-btn" onclick="document.getElementById('imageUpload').click();">
+                    <img class="pr_edit" v-if="fields.imagePreview" :src="fields.imagePreview"
+                        alt="Предварительный просмотр" style="max-width: 200px; margin-top: 10px;">
+                    <img class="pr_edit" v-else-if="user.user_info && user.user_info.avatar"
+                        :src="linkApp + '/storage/' + user.user_info.avatar" alt="">
+                    <img class="pr_edit" v-else :src="linkApp + '/img/img_acc.jpg'" alt="">
+                </button>
+                <input type="file" id="imageUpload" name="imageUpload" accept="image/*" style="display:none;"
+                    @change="previewImage">
+            </div>
+            <form @submit.prevent="submitForm">
+                <input v-model="fields.nameUser" class="in_name_category" id="postText" name="postText"
+                    placeholder="Имя" required></input>
+                <input v-model="fields.surnameUser" class="in_name_category" id="postText" name="postText"
+                    placeholder="Фамилия" required></input>
 
                 <label for="postText">Цитата</label> <br>
-                <textarea id="postText" name="postText" placeholder="" required></textarea>
+                <textarea v-model="fields.quote" id="postText" name="postText" placeholder=""></textarea>
                 <button class="but_post" type="submit">Сохранить</button>
-                <label for="postText">Логин</label>
-                <form @submit.prevent="updateLogin">
+            </form>
+            <label for="postText">Логин</label>
+            <form @submit.prevent="updateLogin">
                 <div style="display: flex; align-items: center;"><input class="in_name_category" id="postText"
                         style="display: flex; align-items: center;" name="postText" v-model="inputLogin"
-                        @input="checkAvailability"  placeholder="Введите новый логин">
+                        @input="checkAvailability" placeholder="Введите новый логин">
                     </input>
                     <div class="avaible" v-if="loginAvailability && inputLogin.length != 0">свободен</div>
                     <div class="avaible notavaible" v-if="!loginAvailability && inputLogin.length != 0">занят</div>
-                    <button  type="submit" class="button_succes">Подтвердить</button>
+                    <button type="submit" class="button_succes">Подтвердить</button>
                 </div>
-                </form>
-                <div v-if="loginError" style="color: red;" class="">{{ loginError }}</div>
-                <div v-if="loginSucces" style="color: green;" class="">{{ loginSucces }}</div>
-                <label for="postText">Старый пароль</label>
-                <div style="display: flex; align-items: center;"><input @input="handleChangePassword" class="in_name_category" id="postText"
-                        name="postText" v-model="passwordOld" placeholder="Подтвердите свой пароль" required></input></div>
-                <label for="postText">Новый пароль</label>
-                <div style="display: flex; align-items: center;"><input @input="handleChangePassword" class="in_name_category" id="postText"
-                        name="postText" v-model="passwordNew" placeholder="Введите новый пароль" required>
-                    <button @click="updatePassword" class="button_succes">Сменить</button></input>
-                </div>
-                <div v-if="PasswordError" style="color: red;" class="">{{ PasswordError }}</div>
-                <div v-if="PasswordSucces" style="color: green;" class="">{{ PasswordSucces }}</div>
+            </form>
+            <div v-if="loginError" style="color: red;" class="">{{ loginError }}</div>
+            <div v-if="loginSucces" style="color: green;" class="">{{ loginSucces }}</div>
+            <label for="postText">Старый пароль</label>
+            <div style="display: flex; align-items: center;"><input @input="handleChangePassword"
+                    class="in_name_category" id="postText" name="postText" v-model="passwordOld"
+                    placeholder="Подтвердите свой пароль" required></input></div>
+            <label for="postText">Новый пароль</label>
+            <div style="display: flex; align-items: center;"><input @input="handleChangePassword"
+                    class="in_name_category" id="postText" name="postText" v-model="passwordNew"
+                    placeholder="Введите новый пароль" required>
+                <button @click="updatePassword" class="button_succes">Сменить</button></input>
+            </div>
+            <div v-if="PasswordError" style="color: red;" class="">{{ PasswordError }}</div>
+            <div v-if="PasswordSucces" style="color: green;" class="">{{ PasswordSucces }}</div>
+            <label for="postText">Выбор категорий</label>
+            <div 
+            v-for="category in categories" 
+            :key="category.id" 
+            :class="['category', { selected: selectedCategories.includes(category.id)}]"
+            @click="toggleCategory(category.id)"
+        >
+            {{ category.name }}
+        </div>
+        <button @click="updateCategories" class="button_succes">Сохранить категории</button>
+
+
+            <button @click="deleteAccount" class="but_post" style="background-color: red;">Удалить аккаунт</button>
 
         </div>
     </div>
 </template>
 <script>
+import { mapGetters } from 'vuex/dist/vuex.cjs.js';
 import SideMenu from '../components/sideMenu.vue';
+import axios from 'axios';
 
 export default {
     name: 'ProfileEdit',
@@ -58,18 +83,33 @@ export default {
     },
     data() {
         return {
+            profileId: this.$route.params.id,
+            fields: {
+                nameUser: '',
+                surnameUser: '',
+                quote: '',
+                imagePreview: null,
+                imageFile: null,
+            },
+
+            user: [],
+
             inputLogin: '',
             linkApp: "",
 
             loginAvailability: null,
-            loginError:'',
+            loginError: '',
             loginSucces: '',
             isLoadingAvailability: false,
 
-            passwordOld:'',
-            passwordNew:'',
-            PasswordError:'',
+            passwordOld: '',
+            passwordNew: '',
+            PasswordError: '',
             PasswordSucces: '',
+
+
+            categories: [],
+            selectedCategories: []
         }
     },
     methods: {
@@ -89,43 +129,141 @@ export default {
                 })
         },
         async updateLogin() {
-            if(this.loginAvailability && this.inputLogin.length > 0)
-            {
+            if (this.loginAvailability && this.inputLogin.length > 0) {
                 await axios.patch('/user/login/edit', { 'login': this.inputLogin })
-                .then(response=>{
-                    this.loginSucces = response.data.message;
-                })
-                .catch(e=>{
-                    this.loginError = e.response.data.message;
-                })
+                    .then(response => {
+                        this.loginSucces = response.data.message;
+                    })
+                    .catch(e => {
+                        this.loginError = e.response.data.message;
+                    })
             }
-            else if(!this.inputLogin){
+            else if (!this.inputLogin) {
                 this.loginError = 'Поле не может быть пустым';
             }
-            else{
+            else {
                 this.loginError = 'Логин занят';
             }
         },
         async updatePassword() {
-            if(this.passwordOld.length > 0 && this.passwordNew.length > 0)
-            {
+            if (this.passwordOld.length > 0 && this.passwordNew.length > 0) {
                 await axios.patch('/user/password/edit', { 'password_old': this.passwordOld, 'password_new': this.passwordNew })
-                .then(response=>{
-                    this.PasswordSucces = response.data.message;
-                })
-                .catch(e=>{
-                    this.PasswordError = e.response.data.message;
-                })
+                    .then(response => {
+                        this.PasswordSucces = response.data.message;
+                    })
+                    .catch(e => {
+                        this.PasswordError = e.response.data.message;
+                    })
             }
-            else{
+            else {
                 this.PasswordError = 'Поля не могут быть пустыми';
             }
         },
-        handleChangePassword()
-        {
+        async getUser() {
+            await axios.get(`/user/info/${this.profileId}`)
+                .then(response => {
+                    this.user = response.data;
+                    this.fields.nameUser = response.data.user_info.name;
+                    this.fields.surnameUser = response.data.user_info.surname;
+                    this.fields.quote = response.data.user_info.quote;
+                })
+        },
+        handleChangePassword() {
             this.PasswordError = '';
             this.PasswordSucces = '';
+        },
+
+        previewImage(event) {
+            const file = event.target.files[0];
+            this.fields.imageFile = file;
+
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                this.fields.imagePreview = e.target.result;
+            };
+
+            if (file) {
+                reader.readAsDataURL(file);
+            }
+        },
+        async submitForm() {
+            const formData = new FormData();
+            formData.append('name', this.fields.nameUser);
+            formData.append('surname', this.fields.surnameUser);
+            formData.append('quote', this.fields.quote);
+            if (this.fields.imageFile) {
+
+                formData.append('imageUpload', this.fields.imageFile);
+            }
+            await axios.post('/user/info/edit', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            })
+                .then(response => {
+                    console.log(response.data);
+                })
+                .catch(error => {
+                    console.error(error.response.data);
+                });
+        },
+        async deleteAccount() {
+            let succes = window.confirm('Вы правда хотите удалить аккаунт и связанные с ним данные?');
+            if (succes) {
+                await axios.delete('/user/account/delete')
+                    .then(response => {
+                    })
+                await axios.get("/logout").then((response) => {
+                    this.$router.push("/auth");
+                    this.$store.commit('authStore/logout');
+                });
+            }
+        },
+        getCategories() {
+            axios.get('/get/categories').then(response => {
+                this.categories = response.data;
+            })
+                .catch((error) => {
+                    this.categories = error.response;
+                })
+        },
+        getSelectedCategory()
+        {
+            axios.get('/user/category')
+            .then(response=>{
+                this.selectedCategories = response.data.map(category=>{
+                    return category.id
+                });
+            })
+        },
+        toggleCategory(id) {
+
+            const index = this.selectedCategories.indexOf(id);
+            console.log(this.selectedCategories);
+            if (index === -1) {
+                this.selectedCategories.push(id);
+            } else {
+                this.selectedCategories.splice(index, 1);
+            }
+        },
+        updateCategories()
+        {
+            axios.patch('/user/category/change', {'ids': this.selectedCategories})
+            .then(response =>{
+            })
         }
+    },
+    mounted() {
+        this.getCategories();
+        if (this.isAuthenticated) {
+            this.getUser();
+            this.getSelectedCategory();
+        }
+
+    },
+    computed: {
+        ...mapGetters('authStore', ['isAuthenticated']),
     },
     created() {
         this.linkApp = `${import.meta.env.VITE_APP_URL}`;
@@ -133,6 +271,24 @@ export default {
 }
 </script>
 <style scoped>
+.categories {
+    display: flex;
+    flex-direction: column;
+}
+
+.category {
+    padding: 10px;
+    margin: 5px;
+    border: 1px solid #865DF8;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.category.selected {
+    background-color: #865DF8;
+    color: white;
+}
 body {
     margin: 0;
     font-family: "Unbounded", serif;

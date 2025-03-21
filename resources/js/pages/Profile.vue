@@ -3,7 +3,8 @@
     <div class="content" id="content">
 
         <div class="name_cart">
-            <p>Мой профиль</p>
+            <p v-if="profileId == user.id">Мой профиль</p>
+            <p v-else>Профиль</p>
         </div>
         <div class="bckgr">
             <img :src="linkApp + '/img/back.png'" alt="" class="backgr_main">
@@ -16,59 +17,30 @@
 
         <div class="profile">
             <div class="img_profile">
-                <img :src="linkApp + '/img/img_acc.png'" alt="">
+                <img v-if="userInfo.user_info && userInfo.user_info.avatar"
+                    :src="linkApp + '/storage/' + userInfo.user_info.avatar" alt="">
+                <img v-else :src="linkApp + '/img/img_acc.jpg'" alt="">
+
             </div>
             <div class="profile_text">
-                <p class="name_accaunt" v-if="userInfo.user_info">{{ userInfo.user_info.name??' ' + ' ' + userInfo.user_info.surname }}</p>
+                <p class="name_accaunt" v-if="userInfo.user_info">{{ userInfo.user_info.name ?? ' ' + ' ' +
+                    userInfo.user_info.surname }}</p>
                 <p class="friends_col" v-if="userInfo.all_friends">{{ userInfo.all_friends.length }} друга</p>
-                <p class="quote" v-if="userInfo.user_info">{{ userInfo.user_info.quote?? 'Цитата не установлена :('}} </p>
-                <RouterLink to="/profile/edit" class="redact">Изменить профиль</RouterLink>
-            </div>
-        </div>
-
-
-        <FriendBar :customTop="-10.42 + 'vw'" />
-
-        <label class="my_post" for="">Мои посты</label>
-        <div v-for="post in userPosts" :key="post.id" class="news">
-
-            <div class="piple">
-                <img class="img_avatar" :src="linkApp + '/img/icons/avatar.png'" alt="">
-                <div class="name_piple">
-                    <p class="name_profile">
-                        {{ post.user.user_info.name + ' ' + post.user.user_info.surname }}
-                    </p>
-                    <p class="category_name">{{ post.category.name.toLowerCase() }}</p>
-                </div>
-            </div>
-            <div class="new_content">
-                <p>
-                    {{ post.body }}
+                <p class="quote" v-if="userInfo.user_info">{{ userInfo.user_info.quote ?? 'Цитата не установлена :(' }}
                 </p>
-                <img v-for="photo in post.photos" :key="photo.id" :src="linkApp + '/storage/' + photo.path">
-                <div class="action_container">
-
-                    <div class="like" @click="toggleLike(post.id)">
-                        <svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg"
-                            xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 512 512"
-                            style="enable-background:new 0 0 512 512; width: 40px;" xml:space="preserve">
-                            <g>
-                                <g>
-                                    <path
-                                        d="M466.706,66.173c-29.609-29.609-69.224-45.914-111.56-45.914c-36.448,0-70.876,12.088-98.643,34.342 c-28.166-22.254-62.637-34.342-98.729-34.342c-42.532,0-82.252,16.312-111.86,45.914C16.305,95.776,0,135.398,0,177.727 c0,42.335,16.305,81.951,45.914,111.553l197.065,197.065c3.591,3.598,8.306,5.396,13.021,5.396c4.703,0,9.405-1.793,13.003-5.372 l197.224-196.623C495.75,259.561,512,219.89,512,178.034C512,135.791,495.965,96.12,466.706,66.173z M440.056,263.821 L256.018,447.294L71.956,263.238c-22.647-22.653-35.122-53.023-35.122-85.511s12.475-62.858,35.122-85.511 c22.653-22.647,53.128-35.122,85.818-35.122c32.169,0,62.705,12.53,85.966,35.269c7.207,7.054,18.767,6.992,25.895-0.147 c22.653-22.647,53.017-35.122,85.511-35.122c32.494,0,62.858,12.475,85.358,34.974c22.352,22.868,34.661,53.398,34.661,85.966 C475.165,210.209,462.642,240.738,440.056,263.821z"
-                                        fill="#000000" style="fill: rgb(134, 93, 248);"></path>
-                                </g>
-                            </g>
-                        </svg>
-                        {{ post.likes.length }}
-                    </div>
-
-
-                </div>
+                <RouterLink v-if="profileId == user.id" :to="`/profile/${profileId}/edit`" class="redact">Изменить
+                    профиль</RouterLink>
+                <button @click="sendRequestToFriend(userInfo.id)" class="btn" v-if="profileId != user.id && !isFriend()">Добавить в друзья</button>
+                <button @click="deleteFriend(userInfo.id)" class="btn" v-else-if="profileId != user.id && isFriend()">Удалить из друзей</button>
             </div>
-
-
         </div>
+
+
+        <FriendBar :customTop="-10.42 + 'vw'" :friends="userInfo.all_friends" />
+
+        <label class="my_post" v-if="profileId == user.id" for="">Мои посты</label>
+        <label class="my_post" v-else="profileId == user.id" for="">Посты</label>
+        <Post :Posts="userPosts" @like="getPosts" />
     </div>
 
 </template>
@@ -77,37 +49,54 @@ import { RouterLink } from 'vue-router';
 import FriendBar from '../components/friendBar.vue';
 import SideMenu from '../components/sideMenu.vue';
 import { mapGetters } from 'vuex/dist/vuex.cjs.js';
+import Post from '../components/Post.vue';
+
 
 export default {
     name: 'Profile',
     data() {
         return {
+            profileId: this.$route.params.id,
             linkApp: '',
             userPosts: [],
             userInfo: [],
         }
     },
     methods: {
-        getMyPosts() {
-            axios.get('/post/my_posts').then(response => {
+        getPosts() {
+            axios.get(`/posts/user/${this.profileId}`).then(response => {
                 this.userPosts = response.data;
             })
                 .catch((error) => {
                     this.userPosts = error.response;
                 })
         },
-        async getUser()
-        {
-            await axios.get('/user/info')
-            .then(response=>{
-                this.userInfo = response.data;
-            })
+        async getUser() {
+            await axios.get(`/user/info/${this.profileId}`)
+                .then(response => {
+                    this.userInfo = response.data;
+                })
         },
         toggleLike(postId) {
             axios.post(`/post/${postId}/like`, {})
                 .then(response => {
-                    this.getMyPosts();
+                    this.getPosts();
                 })
+        },
+        sendRequestToFriend(id) {
+            axios.post('/friend/send_friend_request', { 'id': id })
+                .then(response => {
+                })
+        },
+        deleteFriend(id) {
+            axios.delete(`/friend/${id}/delete`, {})
+                .then(response => {
+                    console.log(response.data)
+                })
+        },
+        isFriend() {
+            if (!this.userInfo.all_friends) return false;
+            return this.userInfo.all_friends.some(friend => friend.id === this.user.id);
         },
     },
     created() {
@@ -115,14 +104,17 @@ export default {
     },
     mounted() {
         this.getUser();
-        this.getMyPosts();
+        this.getPosts();
+
+
     },
-    computed:{
+    computed: {
         ...mapGetters('authStore', ['isAuthenticated', 'user']),
     },
     components: {
         SideMenu,
-        FriendBar
+        FriendBar,
+        Post
     }
 }
 </script>
@@ -132,7 +124,15 @@ body {
     font-family: "Unbounded", serif;
     transition: background-color 0.3s ease;
 }
-.like{
+
+.btn {
+    margin-top: 1vw;
+    padding: 5px 10px 5px 10px;
+    border-radius: 2vw;
+    border-color: #865DF8;
+}
+
+.like {
     margin-top: 15px;
     cursor: pointer;
     margin-left: 20px;
@@ -141,6 +141,7 @@ body {
     align-items: center;
     font-size: 28px;
 }
+
 .friends {
     position: fixed;
     width: 22.03vw;
@@ -309,6 +310,7 @@ a {
 }
 
 .friends_col {
+    margin-top: 15px;
     font-size: 1.04vw;
 }
 

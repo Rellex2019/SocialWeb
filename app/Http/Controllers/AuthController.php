@@ -28,12 +28,17 @@ class AuthController extends Controller
                 'surname' => $userData['surname'],
                 'category' => null,
                 'avatar' => null,
+
             ]);
+            if (!$userInfo) {
+                return response()->json(['error' => 'UserInfo not created'], 500);
+            }
             $user = User::create([
                 'userInfo_id' => $userInfo->id,
                 'login' => $userData['login'],
                 'email' => $userData['email'],
-                'password' => $userData['password']
+                'password' => $userData['password'],
+                'role_id' => 2
             ]);
             Auth::attempt(['login' => $userData['login'], 'password' => $userData['password']]);
             return response()->json($user->load('userInfo'));
@@ -68,9 +73,10 @@ class AuthController extends Controller
         $auth = Auth::check();
         return response()->json($auth);
     }
-    public function getUser(Request $request)
+    public function getUser(Request $request, $id)
     {
-        $user = $request->user()->load('userInfo');
+        // $user = $request->user()->load('userInfo');
+        $user = User::find($id)->load('userInfo');
         $allFriend = $user->allFriends()->with('userInfo')->get();
         $user->all_friends = $allFriend;
         return response()->json($user);
@@ -106,6 +112,11 @@ class AuthController extends Controller
             return response()->json(['message' => 'Пароль успешно изменен.'], 200);
         }
         return response()->json(['message' => 'Старый пароль невереный.'], 403);
-
+    }
+    public function deleteAccount(Request $request)
+    {
+        $user = $request->user();
+        $user->delete();
+        return response()->json(['message'=> 'Аккаунт был успешно удален']);
     }
 }

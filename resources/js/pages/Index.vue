@@ -18,60 +18,16 @@
         <!-- ДОДЕЛАТЬ КОГДА СДЕЛАЮ КАТЕГОРИИ ПОЛЬЗОВАТЕЛЕЙ -->
         <div class="categories">
             <div class="category-buttons" id="categoryButtons">
-                <button class="category-button" data-id="1">всё</button>
-                <button class="category-button" data-id="1">музыка</button>
-                <button class="category-button" data-id="1">спорт</button>
+                <button class="category-button" @click="filteredPost(9999)" data-id="1">Всё</button>
+                <button class="category-button" :key="category.id" @click="filteredPost(category.id)"
+                    v-for="category in selectedCategories" data-id="1">{{ category.name }}</button>
             </div>
         </div>
         <!-- --------------------------- -->
         <div class="category-content" id="categoryContent">
             <!-- <p  id="contentText">Выберите категорию, чтобы увидеть содержимое.</p> -->
 
-            <div v-for="post in allPosts" class="news">
-                <div class="piple">
-                    <img class="img_avatar" :src="linkApp + '/img/icons/avatar.png'" alt="" />
-
-                    <div class="name_piple">
-                        <a style="text-decoration: none" href="">
-                            <p class="name_profile">
-                                {{ post.user.user_info.name + ' ' + post.user.user_info.surname }}
-                            </p>
-                        </a>
-                        <p class="category_name">
-                            {{ post.category.name.toLowerCase() }}
-                        </p>
-                    </div>
-                </div>
-                <div class="new_content">
-                    <div class="title">{{ post.title }}</div>
-                    <p>
-                        {{ post.body }}
-                    </p>
-                    <div class="container_img">
-                        <img v-for="photo in post.photos" :key="photo.id" class="news_img"
-                            :src="linkApp + '/storage/' + photo.path" />
-                    </div>
-                    <div class="action_container">
-
-                        <div class="like" @click="toggleLike(post.id)">
-                            <svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg"
-                                xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 512 512"
-                                style="enable-background:new 0 0 512 512; width: 40px;" xml:space="preserve">
-                                <g>
-                                    <g>
-                                        <path
-                                            d="M466.706,66.173c-29.609-29.609-69.224-45.914-111.56-45.914c-36.448,0-70.876,12.088-98.643,34.342 c-28.166-22.254-62.637-34.342-98.729-34.342c-42.532,0-82.252,16.312-111.86,45.914C16.305,95.776,0,135.398,0,177.727 c0,42.335,16.305,81.951,45.914,111.553l197.065,197.065c3.591,3.598,8.306,5.396,13.021,5.396c4.703,0,9.405-1.793,13.003-5.372 l197.224-196.623C495.75,259.561,512,219.89,512,178.034C512,135.791,495.965,96.12,466.706,66.173z M440.056,263.821 L256.018,447.294L71.956,263.238c-22.647-22.653-35.122-53.023-35.122-85.511s12.475-62.858,35.122-85.511 c22.653-22.647,53.128-35.122,85.818-35.122c32.169,0,62.705,12.53,85.966,35.269c7.207,7.054,18.767,6.992,25.895-0.147 c22.653-22.647,53.017-35.122,85.511-35.122c32.494,0,62.858,12.475,85.358,34.974c22.352,22.868,34.661,53.398,34.661,85.966 C475.165,210.209,462.642,240.738,440.056,263.821z"
-                                            fill="#000000" style="fill: rgb(134, 93, 248);"></path>
-                                    </g>
-                                </g>
-                            </svg>
-                            {{ post.likes.length }}
-                        </div>
-
-
-                    </div>
-                </div>
-            </div>
+            <Post :Posts="allFilteredPost.length ? allFilteredPost : allPosts" @like="getAllPosts" />
         </div>
     </div>
     <!-- <script>
@@ -99,6 +55,7 @@
 </template>
 <script>
 import FriendBar from '../components/friendBar.vue';
+import Post from '../components/Post.vue';
 import SideMenu from '../components/sideMenu.vue';
 
 export default {
@@ -107,18 +64,21 @@ export default {
     data() {
         return {
             //Посты
-            myPosts: [],
             allPosts: [],
+            allFilteredPost: [],
+            filterId: 9999,
             // postInput: [],
 
             //Друзья
             friendsInfo: [],
             linkApp: "",
+            selectedCategories: [],
         }
     },
     components: {
         SideMenu,
-        FriendBar
+        FriendBar,
+        Post
     },
     methods: {
 
@@ -126,6 +86,7 @@ export default {
             await axios.get("/post/get_posts")
                 .then((response) => {
                     this.allPosts = response.data;
+                    this.filteredPost(this.filterId);
                 })
                 .catch((error) => {
                     console.log(error);
@@ -137,9 +98,24 @@ export default {
                     this.$router.push(`/chat/${response.data.chatId}`)
                 })
         },
+        getSelectedCategory() {
+            axios.get('/user/category')
+                .then(response => {
+                    this.selectedCategories = response.data;
+                })
+        },
+        filteredPost(categoryId) {
+            this.filterId = categoryId;
+            if (categoryId === 9999) { 
+                this.allFilteredPost = this.allPosts; 
+            } else {
+                this.allFilteredPost = this.allPosts.filter(post => post.category.id == categoryId); // Фильтруем по категории
+            }
+        }
     },
     mounted() {
         this.getAllPosts();
+        this.getSelectedCategory();
     },
     created() {
         this.linkApp = `${import.meta.env.VITE_APP_URL}`;
@@ -147,7 +123,7 @@ export default {
 };
 </script>
 <style scoped>
-.like{
+.like {
     margin-top: 15px;
     cursor: pointer;
     margin-left: 20px;
@@ -156,6 +132,7 @@ export default {
     align-items: center;
     font-size: 28px;
 }
+
 .title {
     font-size: 42px;
 }

@@ -27,17 +27,17 @@ class PostController extends Controller
     ]);
     if ($request->hasFile('photos')) {
       foreach ($request->file('photos') as $file) {
-        $path = $file->store('photos', 'public'); 
+        $path = $file->store('photos', 'public');
         $post->photos()->create(['path' => $path]);
       }
     }
     return response()->json('Пост создан');
   }
-  public function getMyPosts(Request $request)
+  public function getUserPosts(Request $request, $id)
   {
-    $posts = $request->user()->posts()->with('photos', 'likes', 'user.userInfo', 'category')->get();
-    foreach($posts as $post)
-    {
+    $user = User::find($id);
+    $posts = $user->posts()->with('photos', 'likes', 'user.userInfo', 'category')->get();
+    foreach ($posts as $post) {
       $post->likes->makeHidden(['pivot']);
       $post->makeHidden(['user_id', 'category_id']);
     }
@@ -45,9 +45,8 @@ class PostController extends Controller
   }
   public function getPosts(Request $request)
   {
-    $posts = Post::with(['photos', 'likes', 'user.userInfo', 'category'])-> get();
-    foreach($posts as $post)
-    {
+    $posts = Post::with(['photos', 'likes', 'user.userInfo', 'category'])->get();
+    foreach ($posts as $post) {
       $post->likes->makeHidden(['pivot']);
       $post->makeHidden(['user_id', 'category_id']);
     }
@@ -74,21 +73,33 @@ class PostController extends Controller
     $categories = Category::all();
     return response()->json($categories);
   }
+  public function changeCategories(Request $request)
+  {
+    $user = $request->user();
+    $categoryIds = $request->input('ids', []);
+    $user->categories()->sync($categoryIds);
+    return response()->json($user->categories);
+  }
 
+  public function getUserCategories(Request $request)
+  {
+      $user = $request->user(); 
+      $categories = $user->categories()->get();
+      return response()->json($categories);
+  }
+  
   //Лайки
   public function toggleLike(Request $request, $id)
   {
     $userId = $request->user()->id;
     $like = DB::table('likes')->where('post_id', $id)->where('user_id', $userId)->first();
-    if($like)
-    {
+    if ($like) {
       DB::table('likes')->where('id', $like->id)->delete();
-      return response()->json(['message'=> 'Лайк удален']);
-    }
-    else {
+      return response()->json(['message' => 'Лайк удален']);
+    } else {
       DB::table('likes')->insert([
-        'post_id'=> $id,
-        'user_id'=> $userId
+        'post_id' => $id,
+        'user_id' => $userId
       ]);
     }
     return response()->json(['message' => 'Лайк добавлен']);
@@ -98,10 +109,10 @@ class PostController extends Controller
   public function getComment(Request $request, $id)
   {
     $comments = Comment::where('post_id', $id)->get();
-    $commentsWithUser = $comments->map(function ($comment){
+    $commentsWithUser = $comments->map(function ($comment) {
       $user = User::find($comment->user_id);
       return [
-        'comment'=> $comment,
+        'comment' => $comment,
         'user' => $user->userInfo
       ];
     });
@@ -111,11 +122,10 @@ class PostController extends Controller
   {
     $user = $request->user();
     $comment = Comment::create([
-      'user_id'=> $user->id,
-      'post_id'=> $id,
+      'user_id' => $user->id,
+      'post_id' => $id,
       'body' => $request->body
     ]);
     return response()->json(['message' => 'Комментарий был создан']);
   }
-
 }
