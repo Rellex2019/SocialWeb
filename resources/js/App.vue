@@ -22,6 +22,7 @@ export default {
 </script>
 
 <style>
+
     .outer-padding{
         display: flex;
         justify-content: space-between;

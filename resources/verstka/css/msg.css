@@ -21,7 +21,6 @@
     color: #C68DFE;
 }
 .block1{
-    margin-left: 30vw;
     margin-top: 2.08vw;
     display: flex;
     flex-direction: row;
@@ -44,7 +43,7 @@
     font-weight: 400;
 font-size: 1.04vw;
 line-height: 1.56vw;
-color: #865DF8;
+color: #C68DFE;
 }
 
 .avatar_friend_chat{
@@ -54,20 +53,19 @@ margin-left: -26.04vw;
 }
 
 .container_messages{
-  position: fixed;
-  /* margin-top: 40.63vw; */
-  bottom: 0;
+    position: fixed;
+margin-top: 40.63vw;
 }
 .enter_message{
 width: 61.09vw;
-
-border: 0.010vw solid #865DF8;
+background: #22232F;
+border: 0.05vw solid #C68DFE;
 border-radius: 1.04vw;
 
 font-weight: 400;
 font-size: 1.04vw;
 line-height: 1.30vw;
-
+color: #FFFFFF;
 padding: 1.25vw 1.35vw;
 }
 .icon_enter{
@@ -118,7 +116,7 @@ gap: 1.04vw;
 .my_msg{
 width: 31.46vw;
 border-radius: 0.52vw 0.52vw 0px 0.52vw;
-background: #865DF8;
+background: #C68DFE;
 padding: 0.94vw 1.88vw 0.78vw 0.99vw;
 
 }
@@ -132,7 +130,7 @@ color: #FFFFFF;
 font-weight: 400;
 font-size: 0.83vw;
 line-height: 1.30vw;
-    color: #FFFFFF;
+color: #FFFFFF;
 margin-left: 29.17vw;
 
 }
@@ -141,10 +139,6 @@ margin-left: 29.17vw;
     display: none;
 }
 
-.icon_enter {
-margin-top: 1vw;
-margin-left: -3vw;
-}
 /* -----------------------------------media----------------------------- */
 @media ((min-width: 320px) and (max-width: 766px)){
 .sidebar{
@@ -168,7 +162,7 @@ margin-left: -3vw;
 font-weight: 400;
 font-size: 4.69vw;
 line-height: 5.94vw;
-color: #865DF8;
+color: #C68DFE;
 }
 .add_post{
 display: block;
@@ -189,7 +183,7 @@ height: 10.63vw;
     bottom: 0;
     width: 100%;
     height: 18.75vw;
-border-top: 0.31vw solid #865DF8;
+border-top: 0.31vw solid #C68DFE;
 }
 
 
@@ -214,8 +208,8 @@ border-top: 0.31vw solid #865DF8;
     height: 6.98vw;
 }
 .avatar_friend_chat {
-    width: 36px;
-    height: 36px;
+    width: 11.25vw;
+    height: 11.25vw;
     margin-left: -26.04vw;
 }
 .name_friend_chat {
@@ -226,10 +220,10 @@ border-top: 0.31vw solid #865DF8;
     font-weight: 400;
     font-size: 3.04vw;
     line-height: 1.56vw;
-    color: #865DF8;
+    color: #C68DFE;
 }
 .msg {
-    width: 215px;
+    width: 67.19vw;
     background: #FFFFFF;
     border-radius: 1.52vw 1.52vw 1.52vw 0px;
     padding: 0.94vw 1.88vw 0.78vw 0.99vw;
@@ -250,9 +244,9 @@ border-top: 0.31vw solid #865DF8;
     margin-left: 61.17vw;
 }
 .my_msg {
-    width: 215px;
+    width: 67.19vw;
     border-radius: 1.52vw 1.52vw 0px 1.52vw;
-    background: #865DF8;
+    background: #C68DFE;
     padding: 0.94vw 1.88vw 0.78vw 0.99vw;
 }
 .msg_content_my {
@@ -274,30 +268,29 @@ border-top: 0.31vw solid #865DF8;
 }
 .enter_message {
     padding: 2.25vw 1.35vw;
-width: 300px;
-
-border-radius: 20px;
+width: 93.75vw;
+background: #97999C;
+border-radius: 6.25vw;
 font-weight: 400;
-font-size: 12px;
-line-height: 15px;
-
+font-size: 3.75vw;
+line-height: 4.69vw;
+color: #FFFFFF;
 }
 .enter_message::placeholder {
-
+color: #FFFFFF;
 }
 
 .icon_enter {
-    width: 27px;
-    height: 28px;
+    width: 8.44vw;
+    height: 8.75vw;
     cursor: pointer;
     position: absolute;
     margin-left: -9.65vw;
     margin-top: 0.52vw;
 }
 
-
-.name_friend_chat{
-    margin-top: 5vw;
+.container_window{
+    padding-right: 0.1vw;
 }
 
 }
