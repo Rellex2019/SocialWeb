@@ -17,30 +17,67 @@
 
         <div class="profile">
             <div class="img_profile">
-                <img v-if="userInfo.user_info && userInfo.user_info.avatar"
-                    :src="linkApp + '/storage/' + userInfo.user_info.avatar" alt="">
+                <img v-if="userInfo.info && userInfo.info.avatar" :src="linkApp + '/storage/' + userInfo.info.avatar"
+                    alt="">
                 <img v-else :src="linkApp + '/img/img_acc.jpg'" alt="">
 
             </div>
             <div class="profile_text">
-                <p class="name_accaunt" v-if="userInfo.user_info">{{ userInfo.user_info.name ?? ' ' + ' ' +
-                    userInfo.user_info.surname }}</p>
-                <p class="friends_col" v-if="userInfo.all_friends">{{ userInfo.all_friends.length }} друга</p>
-                <p class="quote" v-if="userInfo.user_info">{{ userInfo.user_info.quote ?? 'Цитата не установлена :(' }}
+                <p class="name_accaunt" v-if="userInfo.info">{{ userInfo.info.name + ' ' +
+                    userInfo.info.surname }}</p>
+                <p class="friends_col" v-if="userInfo.friends">{{ userInfo.friends.length }} друга</p>
+                <p class="quote" v-if="userInfo.info">{{ userInfo.info.quote ?? 'Цитата не установлена :(' }}
                 </p>
                 <RouterLink v-if="profileId == user.id" :to="`/profile/${profileId}/edit`" class="redact">Изменить
                     профиль</RouterLink>
-                <button @click="sendRequestToFriend(userInfo.id)" class="btn" v-if="profileId != user.id && !isFriend()">Добавить в друзья</button>
-                <button @click="deleteFriend(userInfo.id)" class="btn" v-else-if="profileId != user.id && isFriend()">Удалить из друзей</button>
+                <button @click="sendRequestToFriend(userInfo.id)" class="btn"
+                    v-if="profileId != user.id && !isFriend()">Добавить в друзья</button>
+                <button @click="openChat(userInfo.id ,isFriend().chat_id)" class="add_but btn"
+                    v-if="profileId != user.id && isFriend()">Открыть чат</button>
+                <button @click="deleteFriend(userInfo.id)" class="btn"
+                    v-if="profileId != user.id && isFriend()">Удалить из друзей</button>
             </div>
         </div>
 
 
-        <FriendBar :customTop="-10.42 + 'vw'" :friends="userInfo.all_friends" />
 
-        <label class="my_post" v-if="profileId == user.id" for="">Мои посты</label>
-        <label class="my_post" v-else="profileId == user.id" for="">Посты</label>
-        <Post :Posts="userPosts" @like="getPosts" />
+        <div class="content" v-if="isAuthenticated">
+            <div class="container">
+                <div class="block5">
+                    <div class="friends">
+                        <p class="main_title_friends">Друзья</p>
+
+                        <div v-for="friend in userInfo.friends" class="one_friend">
+                            <div style="display: flex; align-items: center; gap: 1vw;">
+                                <img @click="$router.push(`/profile/${friend.id}`)" v-if="friend && friend.avatar"
+                                    :src="linkApp + '/storage/' + friend.avatar" alt="" class="avatar_friend" />
+                                <img @click="$router.push(`/profile/${friend.id}`)" v-else
+                                    :src="linkApp + '/img/img_acc.jpg'" class="avatar_friend" />
+                                <div class="text_friend" @click="$router.push(`/profile/${friend.id}`)">
+                                    <p class="name_friend" v-if="friend">{{ friend.name + ' ' +
+                                        friend.surname }}</p>
+                                    <p class="quote_friend" v-if="friend">{{ friend.quote }}</p>
+                                </div>
+                            </div>
+                            <a v-if="userInfo.id == user.id"
+                                @click.prevent="openChat(friend.id, friend.chat_id ? friend.chat_id : null)">
+                                <img :src="linkApp + '/img/icons/chat.png'" alt="" class="avatar_icon" />
+                            </a>
+                        </div>
+
+
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <label class="my_post" for="">{{ profileId == user.id ? 'Мои посты' : 'Посты' }}</label>
+        <div v-if="!userPosts">
+            <p style="margin-top: 30px;">Вы ещё не создавали постов, хотите добавить?</p>
+            <button @click="$router.push('/post/create')" class="btn_post">Создать пост</button>
+        </div>
+        <Post v-else :Posts="userPosts" @like="getPosts" />
     </div>
 
 </template>
@@ -50,6 +87,7 @@ import FriendBar from '../components/friendBar.vue';
 import SideMenu from '../components/sideMenu.vue';
 import { mapGetters } from 'vuex/dist/vuex.cjs.js';
 import Post from '../components/Post.vue';
+import { ref } from 'vue';
 
 
 export default {
@@ -62,17 +100,31 @@ export default {
             userInfo: [],
         }
     },
+    watch: {
+        '$route.params.id': {
+            handler(newId, oldId) {
+                this.getPosts(newId);
+                this.getUser(newId);
+            },
+        }
+    },
     methods: {
-        getPosts() {
-            axios.get(`/posts/user/${this.profileId}`).then(response => {
+        async openChat(friendId, chatId) {
+            await axios.post(`/chat/${friendId}/message/`, { chatId })
+                .then(response => {
+                    this.$router.push(`/chat/${response.data.chatId}`)
+                })
+        },
+        getPosts(id) {
+            axios.get(`/posts/user/${id ? id : this.profileId}`).then(response => {
                 this.userPosts = response.data;
             })
                 .catch((error) => {
                     this.userPosts = error.response;
                 })
         },
-        async getUser() {
-            await axios.get(`/user/info/${this.profileId}`)
+        async getUser(id) {
+            await axios.get(`/user/info/${id ? id : this.profileId}`)
                 .then(response => {
                     this.userInfo = response.data;
                 })
@@ -94,9 +146,16 @@ export default {
                     console.log(response.data)
                 })
         },
+        async openChat(friendId, chatId) {
+            await axios.post(`/chat/${friendId}/message/`, { chatId })
+                .then(response => {
+                    this.$router.push(`/chat/${response.data.chatId}`)
+                })
+        },
         isFriend() {
-            if (!this.userInfo.all_friends) return false;
-            return this.userInfo.all_friends.some(friend => friend.id === this.user.id);
+            if (!this.userInfo.friends) return null;
+            const friend =  this.userInfo.friends.find(friend => friend.id === this.user.id);
+            return friend ? { id: friend.id, chat_id: friend.chat_id } : null;
         },
     },
     created() {
@@ -119,6 +178,25 @@ export default {
 }
 </script>
 <style scoped>
+.add_but {
+    cursor: pointer;
+    background: #865DF8;
+    border-radius: 1.56vw;
+    font-weight: 300;
+    font-size: 1.04vw;
+    line-height: 1.30vw;
+    color: #FFFFFF;
+    align-items: center;
+    margin-bottom: 0.52vw;
+}
+.btn_post {
+    cursor: pointer;
+    margin-top: 20px;
+    padding: 0.5vw 1.5vw;
+    border: 1px solid #865DF8;
+    border-radius: 0.5vw;
+}
+
 body {
     margin: 0;
     font-family: "Unbounded", serif;
@@ -126,8 +204,9 @@ body {
 }
 
 .btn {
+    cursor: pointer;
     margin-top: 1vw;
-    padding: 5px 10px 5px 10px;
+    padding: 0.5vw 1vw;
     border-radius: 2vw;
     border-color: #865DF8;
 }
@@ -149,7 +228,7 @@ body {
     background-color: #F2EDFE;
     border-radius: 1.56vw;
     margin-left: 25vw;
-    margin-top: -10.42vw;
+    margin-top: 0.05vw;
 }
 
 .container {
@@ -338,7 +417,7 @@ a {
     border-radius: 1.56vw;
 
     margin-left: 25vw;
-    margin-top: -10.42vw;
+    margin-top: -9.75vw;
 }
 
 .main_title_friends {
@@ -368,34 +447,41 @@ a {
 }
 
 .avatar_friend {
+    cursor: pointer;
+    border-radius: 1.8vw;
     width: 3.65vw;
     height: 3.65vw;
 }
 
 .name_friend {
-    width: 9.11vw;
+    font-family: var(--default-font-family, ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji");
+    /* width: 9.11vw;  */
     font-weight: 400;
-    font-size: 0.73vw;
+    /* font-size: 0.73vw;
     line-height: 0.89vw;
     color: #865DF8;
-    margin-bottom: 0.78vw;
+    margin-bottom: 0.78vw; */
 }
 
 .quote_friend {
+    width: 7.8vw;
+    text-overflow: ellipsis;
+    text-wrap: nowrap;
+    overflow: hidden;
     font-weight: 400;
     font-size: 0.63vw;
     line-height: 0.78vw;
     color: rgba(134, 93, 248, 0.47);
-
 }
 
 .avatar_icon {
+    cursor: pointer;
     width: 2.03vw;
     height: 1.93vw;
 }
 
 .text_friend {
-    margin-left: -3.13vw;
+    cursor: pointer;
 }
 
 

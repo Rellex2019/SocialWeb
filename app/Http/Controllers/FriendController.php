@@ -14,9 +14,9 @@ class FriendController extends Controller
         $friends = $user->allFriends()->with('userInfo')->get();
         foreach ($friends as $friend) {
             $friend->chats = $friend->chats()
-            ->where('user_id', $user->id)
-            ->orWhere('friend_id', $user->id)
-            ->first();
+                ->where('user_id', $user->id)
+                ->orWhere('friend_id', $user->id)
+                ->first();
         }
 
 
@@ -73,11 +73,41 @@ class FriendController extends Controller
                     'Заявка уже была отправлена, дождитесь ответа',
                 ]);
             } else {
-                $user->friendRequest()->attach($friendId);
-                return response([
-                    'Заявка отправлена',
-                    'id' => $friendId
+                $requestToId = DB::table('applications_friends')->insertGetId([
+                    'user_id' => $user->id,
+                    'friend_id' => $friendId,
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ]);
+
+                $requestTo = DB::table('applications_friends')->find($requestToId);
+                if ($user->id == $requestTo->user_id) {
+                    $friend = User::with('userInfo')->find($requestTo->friend_id);
+
+                    return response([
+                        'message' => 'Заявка отправлена',
+                        'user'=>[
+                            'id' => $friend->id,
+                            'avatar' => $friend->userInfo->avatar,
+                            'name' => $friend->userInfo->name,
+                            'surname' => $friend->userInfo->surname,
+                            'quote' => $friend->userInfo->quote,
+                        ]
+                    ]);
+                } else {
+                    $friend = User::with('userInfo')->find($requestTo->user_id);
+
+                    return response([
+                        'message' => 'Заявка отправлена',
+                        'user'=>[
+                            'id' => $friend->id,
+                            'avatar' => $friend->userInfo->avatar,
+                            'name' => $friend->userInfo->name,
+                            'surname' => $friend->userInfo->surname,
+                            'quote' => $friend->userInfo->quote,
+                        ]
+                    ]);
+                }
             }
         }
     }
@@ -117,13 +147,39 @@ class FriendController extends Controller
     public function getFriendRequest(Request $request)
     {
         $user = $request->user();
-        $requestToFriend = $user->friendRequestOf()->with('userInfo')->get();
-        return response()->json($requestToFriend);
+        $requestFromFriend = $user->friendRequestOf()->with('userInfo')->get();
+        $users = [];
+        foreach ($requestFromFriend as $request) {
+            $users[] = [
+                'id' => $request->id,
+                'avatar' => $request->userInfo->avatar,
+                'name' => $request->userInfo->name,
+                'surname' => $request->userInfo->surname,
+                'quote' => $request->userInfo->quote,
+            ];
+        }
+        return response([
+            'message' => 'Заявки друзей',
+            'users'=> $users
+        ]);
     }
     public function getUserRequest(Request $request)
     {
         $user = $request->user();
         $requestToFriend = $user->friendRequest()->with('userInfo')->get();
-        return response()->json($requestToFriend);
+        $users = [];
+        foreach ($requestToFriend as $request) {
+            $users[] = [
+                'id' => $request->id,
+                'avatar' => $request->userInfo->avatar,
+                'name' => $request->userInfo->name,
+                'surname' => $request->userInfo->surname,
+                'quote' => $request->userInfo->quote,
+            ];
+        }
+        return response([
+            'message' => 'Заявки друзей',
+            'users'=> $users
+        ]);
     }
 }

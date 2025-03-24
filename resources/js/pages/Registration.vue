@@ -13,91 +13,64 @@
         <label for="" class="Auth">Добро пожаловать!</label>
 
         <div class="form-group">
-            <input
-                v-model="dataReg.name"
-                type="text"
-                class="form"
-                id="name"
-                name="name"
-                value=""
-                placeholder="Имя"
-            />
-            <input
-                v-model="dataReg.surname"
-                type="text"
-                class="form"
-                id="surname"
-                name="surname"
-                value=""
-                placeholder="Фамилия"
-            />
-            <input
-                v-model="dataReg.email"
-                type="email"
-                class="form"
-                id="Email"
-                name="Email"
-                value=""
-                placeholder="Email"
-            />
-            <input
-                v-model="dataReg.login"
-                @input="checkAvailability"
-                type="text"
-                class="form"
-                id="login"
-                name="login"
-                value=""
-                placeholder="Логин"
-            />
-            <div
-                :style="{
-                    backgroundColor:
-                        loginAvailability == true ? 'green' : 'red',
-                }"
-                v-if="!isLoadingAvailability && loginAvailability != null"
-            >
-                Логин {{ dataReg.login }}
-                {{ loginAvailability == true ? "свободен" : "занят" }}
-            </div>
-            <input
-                v-model="dataReg.password"
-                type="password"
-                class="form"
-                id="passsword"
-                name="password"
-                value=""
-                placeholder="Пароль"
-            />
-            <input
-                v-model="dataReg.password_repeat"
-                type="password"
-                class="form"
-                id="password_confirmation"
-                name="password_confirmation"
-                value=""
-                placeholder="Повторите пароль"
-            />
+
+            <span class="error-message" v-if="errors.name">{{ errors.name[0] }}</span>
+            <input v-model="dataReg.name" :class="{ 'has-error': errors.name }" type="text" class="form" id="name"
+                name="name" value="" placeholder="Имя" @input="checkErrors" />
         </div>
 
+
         <div class="form-group">
-            <button
-                class="btn-reg"
-                type="submit"
-                name="sendMe"
-                value="1"
-            >
+            <span class="error-message" v-if="errors.surname">{{ errors.surname[0] }}</span>
+            <input v-model="dataReg.surname" :class="{ 'has-error': errors.surname }" type="text" class="form"
+                id="surname" name="surname" value="" placeholder="Фамилия" @input="checkErrors" />
+        </div>
+
+
+        <div class="form-group">
+            <span class="error-message" v-if="errors.email">{{ errors.email[0] }}</span>
+            <input v-model="dataReg.email" :class="{ 'has-error': errors.email }" type="text" class="form" id="email"
+                name="email" value="" placeholder="E-mail" @input="checkErrors" />
+        </div>
+
+
+        <div class="form-group">
+            <span class="error-message" v-if="errors.login">{{ errors.login[0] }}</span>
+            <span class="login-message" v-if="dataReg.login" :class="{ 'login-red': !loginAvailable }">{{ loginAvailable
+                ?
+                '✓' : '✕' }}</span>
+            <input v-model="dataReg.login" :class="{ 'has-error': errors.login }" @input="checkAvailability" type="text"
+                class="form" id="login" name="login" value="" placeholder="Логин" />
+        </div>
+
+
+
+        <div class="form-group">
+            <span class="error-message" v-if="errors.password">{{ errors.password[0] }}</span>
+            <input v-model="dataReg.password" :class="{ 'has-error': errors.password }" type="password" class="form"
+                id="password" name="password" value="" @input="checkPassword" placeholder="Пароль" />
+        </div>
+
+
+        <div class="form-group">
+            <span class="error-message" v-if="errors.password_repeat">{{ errors.password_repeat[0] }}</span>
+            <input v-model="dataReg.password_repeat" :class="{ 'has-error': errors.password_repeat }" type="password"
+                class="form" id="password_repeat" @input="checkPassword" name="password_repeat" value=""
+                placeholder="Повторите пароль" />
+        </div>
+
+
+
+        <div class="form-group">
+            <button class="btn-reg" type="submit" name="sendMe" value="1">
                 Зарегистрироваться
             </button>
         </div>
-        <label class="lab_lonf" for=""
-            >Продолжая, вы соглашаетесь с Условиями использования и Политикой
+        <label class="lab_lonf" for="">Продолжая, вы соглашаетесь с Условиями использования и Политикой
             конфиденциальности.
         </label>
-        <label for="" class="silka_reg"
-            >Уже есть аккаунт?
-            <RouterLink class="silka" to="/auth"
-                ><span style="color: #a185e9"> Войти</span>
+        <label for="" class="silka_reg">Уже есть аккаунт?
+            <RouterLink class="silka" to="/auth"><span style="color: #a185e9"> Войти</span>
             </RouterLink>
         </label>
     </form>
@@ -119,40 +92,75 @@ export default {
                 password: "",
                 password_repeat: "",
             },
-            loginAvailability: null,
             isLoadingAvailability: false,
+            loginAvailable: '',
+
+
+            errors: [],
         };
     },
     methods: {
         sendDataForRegistration() {
-            axios.post("/signup", this.dataReg).then((response) => {
-                this.$router.push('/');
-                this.$store.commit('authStore/setUser', response.data);
-            });
+            this.checkPassword();
+            if (Object.keys(this.errors).length === 0) {
+                axios.post("/signup", this.dataReg).then((response) => {
+                    this.$router.push('/');
+                    this.$store.commit('authStore/setUser', response.data);
+                })
+                    .catch(e => {
+                        if (e.response && e.response.data.errors) {
+                            this.errors = { ...this.errors,
+                                ...e.response.data.errors};
+                        }
+                    });
+            }
+
         },
         async checkAvailability() {
             this.isLoadingAvailability = true;
-            await axios
-                .post("/check/login_availability", {
-                    login: this.dataReg.login,
-                })
-                .then((response) => {
-                    this.loginAvailability = response.data;
-                })
-                .finally(() => {
-                    this.isLoadingAvailability = false;
-                })
-                .catch((error) => {
-                    console.log(error.response.data);
-                    this.loginAvailability = null;
-                });
+            const loginRegex = /^[a-zA-Z0-9]+$/;
+            let loginValidate = loginRegex.test(this.dataReg.login);
+            this.errors.login = null;
+            if (loginValidate) {
+                await axios
+                    .post("/check/login_availability", {
+                        login: this.dataReg.login,
+                    })
+                    .then((response) => {
+                        this.loginAvailable = response.data;
+                    })
+                    .finally(() => {
+                        this.isLoadingAvailability = false;
+                    });
+            }
+            else {
+                this.loginAvailable = false;
+                this.errors.login = ['Логин должен состоять из латинских букв и цифр'];
+                if (this.dataReg.login.length < 1) {
+                    this.errors.login = null;
+                }
+            }
+
         },
+        checkPassword() {
+            this.errors.password_repeat = null;
+            this.errors.password = null;
+            if(this.dataReg.password_repeat.length<1){
+                this.errors.password_repeat = ['Поля паролей не должны быть пустыми'];
+            }
+            else if (this.dataReg.password != this.dataReg.password_repeat) {
+                this.errors.password_repeat = ['Повтор пароля должен совпадать с паролем'];
+            }
+        },
+        checkErrors(e) {
+            let field = e.target.name;
+            this.errors[field] = null;
+        }
     },
     created() {
         this.linkApp = `${import.meta.env.VITE_APP_URL}`;
     },
-    mounted()
-    {
+    mounted() {
         if (this.isAuthenticated) {
             this.$router.push('/')
         }
@@ -163,10 +171,54 @@ export default {
 };
 </script>
 <style scoped>
+.login-message {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2vw;
+    height: 2vw;
+    border-radius: 1vw;
+    background-color: green;
+    color: white;
+    font-size: 1.2vw;
+    position: absolute;
+    /* Позиционирование ошибки */
+    right: 105%;
+    top: 25%;
+    white-space: nowrap;
+}
+
+.login-red {
+    background-color: red;
+}
+
+.form-group {
+    position: relative;
+    margin-bottom: 1rem;
+}
+
+.has-error {
+    border: 1px solid red !important;
+}
+
+.error-message {
+    color: red;
+    font-size: 0.875rem;
+    position: absolute;
+    /* Позиционирование ошибки */
+    left: 105%;
+    top: 25%;
+    white-space: nowrap;
+    /* Отступ от поля */
+}
+
+
+
 body {
     margin: 0;
     font-family: "Unbounded", serif;
 }
+
 .form {
     padding-left: 0.78vw;
 
@@ -181,11 +233,13 @@ body {
     font-weight: 400;
     font-size: 1.04vw;
 }
+
 .regs {
     display: grid;
 
     place-items: center;
 }
+
 .Auth {
     margin-top: 3vw;
     margin-bottom: 2.6vw;
@@ -193,6 +247,7 @@ body {
     font-size: 1.67vw;
     color: #865df8;
 }
+
 /* Для современных браузеров */
 ::placeholder {
     color: #d1c0ff;
@@ -279,6 +334,7 @@ body {
     position: relative;
     z-index: -30;
 }
+
 .backgr_main {
     /* position: absolute; */
     position: fixed;
@@ -292,6 +348,7 @@ body {
     position: relative;
     z-index: -30;
 }
+
 .backgr_main2 {
     /* position: absolute; */
     position: fixed;
@@ -305,6 +362,7 @@ body {
     .Auth {
         font-size: 4vw;
     }
+
     .name_cart {
         margin-left: 65vw;
         width: 30.25vw;
@@ -317,6 +375,7 @@ body {
         color: #ffffff;
         align-items: center;
     }
+
     .form-group input {
         width: 93.75vw;
         height: 10vw;
@@ -325,9 +384,11 @@ body {
         padding-left: 4vw;
         margin-top: 1vw;
     }
+
     .form-group {
         margin-top: 10vw;
     }
+
     .btn-reg {
         width: 93.75vw;
         height: 10vw;
@@ -341,6 +402,7 @@ body {
         width: 95vw;
         line-height: 4vw;
     }
+
     .silka_reg {
         font-size: 3vw;
         margin-top: 5vw;

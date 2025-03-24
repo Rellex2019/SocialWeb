@@ -35,78 +35,89 @@
 
                     <div id="applicantsContent">
 
-                        <div v-if="searchInput" v-for="friend in filteredFriends" class="name_chat">
-                            <img class="img_avatar" v-if="friend.user_info && friend.user_info.avatar"
-                                :src="linkApp + '/storage/' + friend.user_info.avatar" alt="">
-                            <img class="img_avatar" v-else :src="linkApp + '/img/img_acc.jpg'" alt="">
-                            <div class="chats"  @click="$router.push(`/profile/${friend.id}`)">
-                                <p class="name_chat_f">{{ friend.user_info.name + ' ' + friend.user_info.surname }}</p>
-                                <p class="citata" v-if="friend.user_info.quote">{{ friend.user_info.quote }}</p>
-                                <p class="citata" v-else>К несчатью цитатки нет</p>
-                            </div> <img class="img_chat" @click="deleteFriend(friend.id)"
-                                :src="linkApp + '/img/icons/deleet_fr.png'" alt="">
-                        </div>
-                        <div v-else v-for="friend in friends" class="name_chat">
-                            <img class="img_avatar" v-if="friend.user_info && friend.user_info.avatar"
-                                :src="linkApp + '/storage/' + friend.user_info.avatar" alt="">
-                            <img class="img_avatar" v-else :src="linkApp + '/img/img_acc.jpg'" alt="">
-                            <div class="chats" @click="$router.push(`/profile/${friend.id}`)">
-                                <p class="name_chat_f">{{ friend.user_info.name + ' ' + friend.user_info.surname }}</p>
-                                <p class="citata" v-if="friend.user_info.quote">{{ friend.user_info.quote }}</p>
-                                <p class="citata" v-else>К несчатью цитатки нет</p>
-                            </div> <img class="img_chat" @click="deleteFriend(friend.id)"
+                        <div v-for="friend in searchInput ? filteredFriends : friends" class="name_chat">
+                            <div style="display: flex; align-items: center;">
+                                <img class="img_avatar" v-if="friend.user_info && friend.user_info.avatar"
+                                    :src="linkApp + '/storage/' + friend.user_info.avatar" alt="">
+                                <img class="img_avatar" v-else :src="linkApp + '/img/img_acc.jpg'" alt="">
+                                <div class="chats" @click="$router.push(`/profile/${friend.id}`)">
+                                    <p class="name_chat_f">{{ friend.user_info.name + ' ' + friend.user_info.surname }}
+                                    </p>
+                                    <p class="citata" v-if="friend.user_info.quote">{{ friend.user_info.quote }}</p>
+                                    <p class="citata" v-else>К несчатью цитатки нет</p>
+                                </div>
+                            </div>
+                            <img class="img_chat" @click="deleteFriend(friend.id)"
                                 :src="linkApp + '/img/icons/deleet_fr.png'" alt="">
                         </div>
                     </div>
 
                     <div id="completedContent">
 
-
+                        <p>Заяки в друзья</p>
+                        <div v-if="friendRequest.length<1"> Вам пока что никто не отправил запрос дружбы :(</div>
                         <div v-for="request in friendRequest" class="name_chat">
-                            <img class="img_avatar" v-if="request.user_info && request.user_info.avatar"
-                                :src="linkApp + '/storage/' + request.user_info.avatar" alt="">
-                            <img class="img_avatar" v-else :src="linkApp + '/img/img_acc.jpg'" alt="">
-                            <a @click="$router.push(`/profile/${request.id}`)">
-                                <div class="chats">
-                                    <p class="name_chat_f">{{ request.user_info.name + ' '+ request.user_info.surname}}</p>
-                                    <p class="citata" v-if="request.user_info && request.user_info.quote ">{{ request.user_info.quote }}</p>
-                                    <p class="citata" v-else >Бедолага без цитаты</p>
-                                </div>
-                            </a>
+                            <div style="display: flex; align-items: center;">
+                                <img class="img_avatar" v-if="request.avatar"
+                                    :src="linkApp + '/storage/' + request.avatar" alt="">
+                                <img class="img_avatar" v-else :src="linkApp + '/img/img_acc.jpg'" alt="">
+                                <a @click="$router.push(`/profile/${request.id}`)">
+                                    <div class="chats">
+                                        <p class="name_chat_f">{{ request.name + ' ' + request.surname }}
+                                        </p>
+                                        <p class="citata" v-if="request.quote">{{ request.quote }}</p>
+                                        <p class="citata" v-else>Бедолага без цитаты</p>
+                                    </div>
+                                </a>
+                            </div>
                             <div class="but_zayav">
-                                <a @click="sendRequestToFriend(request.id)" class="add_but" >добавить</a>
-                                <a @click="deleteRequestToFriend(request.id)" class="reject_but" >отклонить</a>
+                                <a @click="sendRequestToFriend(request.id)" class="add_but">добавить</a>
+                                <a @click="deleteRequestToFriend(request.id)" class="reject_but">отклонить</a>
                             </div>
                         </div>
 
 
+                        <p>Отправленные заявки</p>
+                        <div v-if="sentRequest.length<1"> Вы ещё не отправили запрос дружбы :(</div>
+                        <div v-for="request in sentRequest" class="name_chat">
+                            <div style="display: flex; align-items: center;">
+                                <img class="img_avatar" v-if="request.avatar"
+                                    :src="linkApp + '/storage/' + request.avatar" alt="">
+                                <img class="img_avatar" v-else :src="linkApp + '/img/img_acc.jpg'" alt="">
+                                <a @click="$router.push(`/profile/${request.id}`)">
+                                    <div class="chats">
+                                        <p class="name_chat_f">{{ request.name + ' ' + request.surname }}
+                                        </p>
+                                        <p class="citata" v-if="request.quote">{{ request.quote }}</p>
+                                        <p class="citata" v-else>Бедолага без цитаты</p>
+                                    </div>
+                                </a>
+                            </div>
+                            <div class="but_zayav">
+                                <a @click="deleteRequestToFriend(request.id)" class="add_but">Отменить заявку</a>
+                            </div>
+                        </div>
+
                     </div>
 
                     <div id="searchContent">
-                        <div v-if="searchInput" v-for="friend in filteredPeople" class="name_chat">
-                            <img class="img_avatar" v-if="friend.user_info && friend.user_info.avatar"
-                                :src="linkApp + '/storage/' + friend.user_info.avatar" alt="">
-                            <img class="img_avatar" v-else :src="linkApp + '/img/img_acc.jpg'" alt="">
-                            <div class="chats">
-                                <p class="name_chat_f">{{ friend.user_info.name + ' ' + friend.user_info.surname }}
-                                </p>
-                                <p class="citata" v-if="friend.user_info.quote">{{ friend.user_info.quote }}</p>
-                                <p class="citata" v-else>К несчатью цитатки нет</p>
-                            </div> 
-                            <button @click="sendRequestToFriend(friend.id)" class="btn">Добавить</button>
+                        <div v-for="friend in searchInput ? filteredPeople : allPeople" class="name_chat">
+                            <div style="display: flex; align-items: center;">
+                                <img class="img_avatar" v-if="friend.user_info && friend.user_info.avatar"
+                                    :src="linkApp + '/storage/' + friend.user_info.avatar" alt="">
+                                <img class="img_avatar" v-else :src="linkApp + '/img/img_acc.jpg'" alt="">
+                                <div class="chats">
+                                    <p class="name_chat_f">{{ friend.user_info.name + ' ' + friend.user_info.surname }}
+                                    </p>
+                                    <p class="citata" v-if="friend.user_info.quote">{{ friend.user_info.quote }}</p>
+                                    <p class="citata" v-else>К несчатью цитатки нет</p>
+                                </div>
+                            </div>
+                            <button @click="deleteRequestToFriend(friend.id)" v-if="checkIdExists(friend.id)"
+                                class="add_but">Отменить заявку</button>
+                            <button @click="sendRequestToFriend(friend.id)" v-else class="add_but">Добавить</button>
                         </div>
-                        <div  v-else v-for="friend in allPeople" class="name_chat">
-                            <img  class="img_avatar" v-if="friend.user_info && friend.user_info.avatar"
-                                :src="linkApp + '/storage/' + friend.user_info.avatar" alt="">
-                            <img class="img_avatar" v-else :src="linkApp + '/img/img_acc.jpg'" alt="">
-                            <div class="chats" @click="$router.push(`/profile/${friend.id}`)">
-                                <p class="name_chat_f">{{ friend.user_info.name + ' ' + friend.user_info.surname }}
-                                </p>
-                                <p class="citata" v-if="friend.user_info.quote">{{ friend.user_info.quote }}</p>
-                                <p class="citata" v-else>К несчатью цитатки нет</p>
-                            </div> 
-                            <button @click="sendRequestToFriend(friend.id)" class="btn">Добавить</button>
-                        </div>
+
                     </div>
                 </div>
             </div>
@@ -127,7 +138,10 @@ export default {
             searchInput: '',
             filteredPeople: [],
             allPeople: [],
-            friendRequest:[]
+            friendRequest: [],
+
+            sentRequest: [],
+
         }
     },
     components:
@@ -181,11 +195,13 @@ export default {
         },
         async getRequestsFromFriends() {
             await axios.get('/friend/get_friend_request').then(response => {
-                this.friendRequest = response.data;
+                this.friendRequest = response.data.users;
             })
-                .catch((error) => {
-                    this.friendRequest = error.response;
-                })
+        },
+        async getRequestsToFriend() {
+            await axios.get('/friend/get_user_request').then(response => {
+                this.sentRequest = response.data.users;
+            })
         },
         deleteFriend(id) {
             axios.delete(`/friend/${id}/delete`, {})
@@ -197,12 +213,24 @@ export default {
         sendRequestToFriend(id) {
             axios.post('/friend/send_friend_request', { 'id': id })
                 .then(response => {
+
+                    if (response.data.user) {
+                        this.sentRequest.push(response.data.user);
+                    }
+                    if (response.data.id) {
+                        this.friendRequest = this.friendRequest.filter(request => { return request.id != response.data.id });
+                        this.getFriends();
+                    }
+
+                    console.log(this.sentRequest);
                 })
         },
         deleteRequestToFriend(id) {
             axios.post(`/friend/delete_friend_request`, { 'id': id })
                 .then(response => {
                     this.getRequestsFromFriends();
+                    this.sentRequest = this.sentRequest.filter(request => { return request.id != id });
+                    console.log(this.sentRequest);
                 })
         },
         startFilter() {
@@ -216,6 +244,9 @@ export default {
                 const fullName = (friend.user_info.name + ' ' + friend.user_info.surname).toLowerCase();
                 return fullName.includes(searchTerm);
             });
+        },
+        checkIdExists(id) {
+            return this.sentRequest.some(request => request.id === id);
         }
     },
     created() {
@@ -224,6 +255,7 @@ export default {
     mounted() {
         this.startFilter();
         this.showContent('applicants');
+        this.getRequestsToFriend();
         this.getFriends();
         this.getPeople();
         this.getRequestsFromFriends();
@@ -231,8 +263,7 @@ export default {
 }
 </script>
 <style scoped>
-
-.btn{
+.btn {
     padding: 5px 10px 5px 10px;
     width: auto;
     height: 2vw;
@@ -240,6 +271,7 @@ export default {
     border-radius: 1vw;
     text-align: center;
 }
+
 .search-container {
     display: flex;
     /* Rectangle 27 */
@@ -294,15 +326,18 @@ input::placeholder {
 
 
 .name_chat {
+    cursor: pointer;
     display: flex;
     margin-bottom: 0.78vw;
-    width: 56.35vw;
+    width: 50vw;
     height: 7.19vw;
     align-items: center;
+    justify-content: space-between;
     border-radius: 1.56vw;
 }
 
 .name_chat_f {
+    cursor: pointer;
     font-size: 1.25vw;
     line-height: 1.56vw;
     color: #865DF8;
@@ -310,9 +345,11 @@ input::placeholder {
 
 .citata {
 
-    width: 36.46vw;
-    height: 0.78vw;
-
+    max-width: 31.46vw;
+    text-wrap: nowrap;
+    word-break: break-all;
+    overflow: hidden;
+    text-overflow: ellipsis;
     font-family: 'Unbounded';
     font-style: normal;
     font-weight: 400;
@@ -322,14 +359,15 @@ input::placeholder {
 }
 
 .img_chat {
+    cursor: pointer;
     margin-left: -0.26vw;
-    margin-top: 2.60vw;
-    width: 2.44vw;
-    height: 2.44vw;
+    width: 2.1vw;
+    height: 2.1vw;
 }
 
 .img_avatar {
-
+    cursor: pointer;
+    border-radius: 2.7vw;
     width: 5.36vw;
     height: 5.36vw;
     margin-top: 0.78vw;
@@ -399,13 +437,15 @@ a {
 }
 
 .but_zayav {
-    margin-top: 1.56vw;
+    cursor: pointer;
 }
 
 .add_but {
+    cursor: pointer;
+    padding: 0.5vw 1vw;
     display: flex;
     justify-content: center;
-    width: 10.42vw;
+    min-width: 10.42vw;
     height: 2.08vw;
     background: #865DF8;
     border-radius: 1.56vw;

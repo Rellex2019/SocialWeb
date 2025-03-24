@@ -1,42 +1,74 @@
 <template>
     <div v-for="post in Posts" :key="post.id" class="news">
         <div class="" v-if="post.user">
-            <div @click="$router.push(`/profile/${post.user.id}`)" class="piple">
-                <img v-if="post.user && post.user.user_info && post.user.user_info.avatar"
-                    :src="linkApp + '/storage/' + post.user.user_info.avatar" alt="" class="img_avatar">
-                <img v-else :src="linkApp + '/img/img_acc.jpg'" alt="" class="img_avatar">
-                <div class="name_piple">
-                    <p class="name_profile">
-                        {{ post.user.user_info.name + ' ' + post.user.user_info.surname }}
-                    </p>
-                    <p class="category_name">{{ post.category.name.toLowerCase() }}</p>
+            <div style="display: flex; justify-content:space-between; font-size : 1.25vw;">
+                <div @click="$router.push(`/profile/${post.user.id}`)" class="piple">
+                    <img v-if="post.user && post.user.user_info && post.user.user_info.avatar"
+                        :src="linkApp + '/storage/' + post.user.user_info.avatar" alt="" class="img_avatar">
+                    <img v-else :src="linkApp + '/img/img_acc.jpg'" alt="" class="img_avatar">
+                    <div class="name_piple">
+                        <p class="name_profile">
+                            {{ post.user.user_info.name + ' ' + post.user.user_info.surname }}
+                        </p>
+                        <p class="category_name">{{ post.category.name.toLowerCase() }}</p>
+                    </div>
                 </div>
+                <div class="time" style="margin-top: 0.25vw;">{{ formatDate(post.updated_at) }}</div>
             </div>
+
             <div class="new_content">
                 <p>
                     {{ post.body }}
                 </p>
                 <img v-for="photo in post.photos" :key="photo.id" :src="linkApp + '/storage/' + photo.path">
-                <div class="action_container">
+                <div style="display: flex; justify-content: space-between;" class="action_container">
+                    <div class="" style="display: flex;">
+                        <div class="like" @click="toggleLike(post.id)">
+                            <svg width="40" height="34" viewBox="0 0 57 56" fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                    d="M28.9997 5.49914C-3.00001 -12.5 -12.5 32.4998 28.9997 54.9991C70.5 30.5 60 -12 28.9997 5.49914Z"
+                                    style="stroke-width: 2.5px;" stroke="#865DF8" />
+                            </svg>
 
-                    <div class="like" @click="toggleLike(post.id)">
-                        <svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg"
-                            xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 512 512"
-                            style="enable-background:new 0 0 512 512; width: 40px;" xml:space="preserve">
-                            <g>
-                                <g>
-                                    <path
-                                        d="M466.706,66.173c-29.609-29.609-69.224-45.914-111.56-45.914c-36.448,0-70.876,12.088-98.643,34.342 c-28.166-22.254-62.637-34.342-98.729-34.342c-42.532,0-82.252,16.312-111.86,45.914C16.305,95.776,0,135.398,0,177.727 c0,42.335,16.305,81.951,45.914,111.553l197.065,197.065c3.591,3.598,8.306,5.396,13.021,5.396c4.703,0,9.405-1.793,13.003-5.372 l197.224-196.623C495.75,259.561,512,219.89,512,178.034C512,135.791,495.965,96.12,466.706,66.173z M440.056,263.821 L256.018,447.294L71.956,263.238c-22.647-22.653-35.122-53.023-35.122-85.511s12.475-62.858,35.122-85.511 c22.653-22.647,53.128-35.122,85.818-35.122c32.169,0,62.705,12.53,85.966,35.269c7.207,7.054,18.767,6.992,25.895-0.147 c22.653-22.647,53.017-35.122,85.511-35.122c32.494,0,62.858,12.475,85.358,34.974c22.352,22.868,34.661,53.398,34.661,85.966 C475.165,210.209,462.642,240.738,440.056,263.821z"
-                                        fill="#000000" style="fill: rgb(134, 93, 248);"></path>
-                                </g>
-                            </g>
-                        </svg>
-                        {{ post.likes.length }}
+                            {{ post.likes.length }}
 
+
+                        </div>
+                        <button @click="openComments(post.id)" class="btn_comment"><img
+                                :src="linkApp + '/img/icons/chat.png'" alt="" class="comment_icon" /></button>
+
+                    </div>
+                    <button v-if="isModalOpen" @click="closeComments" class="btn_comment"
+                        style="font-size: 32px; color: #865DF8;">X</button>
+                </div>
+                <div v-if="isModalOpen == post.id" class="container-comments">
+                    <div class="nothing" v-if="!comments">Напишите комментарий первым</div>
+                    <div class="container_comment">
+                        <div v-for="comment in comments" :key="comment.comment.id" class="comment">
+                                <div @click="$router.push(`/profile/${comment.comment.user_id}`)" class="user-comment">
+
+                                    <img class="img_avatar-comment" v-if="comment.user && comment.user.avatar"
+                                        :src="linkApp + '/storage/' + comment.user.avatar" alt="">
+                                    <img class="img_avatar-comment" v-else :src="linkApp + '/img/img_acc.jpg'" alt="">
+
+                                    {{ comment.user.name + ' ' + comment.user.surname }}
+                                </div>
+
+                            <div class="comment-body">{{ comment.comment.body }}</div>
+                            <div>{{ formatDate(comment.comment.updated_at) }}</div>
+                        </div>
 
                     </div>
 
 
+
+                    <div class="container_messages">
+                        <textarea class="input-comment" @input="handleScroll" v-model="comment"
+                            placeholder="Введите сообщение"></textarea>
+                        <a @click.prevent="addComment(post.id)"><img :src="linkApp + '/img/orpr.png'" alt=""
+                                class="icon_enter"></a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -50,6 +82,9 @@ export default {
     data() {
         return {
             linkApp: '',
+            comments: [],
+            isModalOpen: null,
+            comment: '',
         }
     },
     props: {
@@ -57,13 +92,57 @@ export default {
             required: true
         }
     },
-    methods:{
-        toggleLike(postId) {
-            axios.post(`/post/${postId}/like`, {})
+    methods: {
+        toggleLike(commentId) {
+            axios.post(`/post/${commentId}/like`, {})
                 .then(response => {
                     this.$emit('like');
                 })
         },
+        async openComments(commentId) {
+            this.comments = [];
+
+            await axios.get(`/post/${commentId}/comment`)
+                .then(response => {
+                    this.comments = response.data;
+                    this.isModalOpen = commentId;
+                })
+        },
+        closeComments() {
+            this.isModalOpen = null;
+            this.comments = [];
+        },
+        addComment(commentId) {
+            const formData = new FormData();
+            formData.append('body', this.comment.replace(/\n/g, '<br>'));
+            axios.post(`/post/${commentId}/comment`, formData)
+                .then(response => {
+                    console.log(response.data);
+                    this.comment = '';
+                    this.openComments(commentId);
+                })
+        },
+        handleScroll(event) {
+            const textarea = event.target;
+            textarea.style.height = 'auto';
+            textarea.style.height = `${textarea.scrollHeight}px`;
+        },
+        formatDate(dateString) {
+            const now = new Date();
+            const postDate = new Date(dateString);
+            const diffInMinutes = Math.floor((now - postDate) / (1000 * 60));
+
+            if (diffInMinutes < 60) {
+                return `${diffInMinutes} мин.назад`;
+            } else if (diffInMinutes < 1440) {
+                const diffInHours = Math.floor(diffInMinutes / 60);
+                return `${diffInHours} час.назад`;
+            } else {
+                const diffInDays = Math.floor(diffInMinutes / 1440);
+                return `${diffInDays} дн.назад`;
+            }
+        },
+
     },
     created() {
         this.linkApp = `${import.meta.env.VITE_APP_URL}`;
@@ -71,7 +150,106 @@ export default {
     components: {}
 }
 </script>
-<style>
+<style scoped>
+.container_comment {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.img_avatar-comment {
+    width: 3vw;
+    height: 3vw;
+    border-radius: 1.5vw;
+}
+
+.user-comment {
+    cursor: pointer;
+    gap: 15px;
+    display: flex;
+    align-items: center;
+}
+
+.comment {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 100%;
+    padding: 0.25vw 1.35vw;
+}
+
+.comment-body {
+    word-break: break-all;
+    overflow-wrap: break-word;
+    white-space: pre-wrap;
+}
+
+.input-comment {
+    width: 100%;
+    background-color: #ffffff;
+    border: 0.010vw solid #865DF8;
+    border-radius: 1.04vw;
+    height: 98px;
+    font-weight: 400;
+    font-size: 1.04vw;
+    line-height: 1.30vw;
+    padding: 1.25vw 1.35vw;
+    overflow-y: hidden;
+}
+
+.icon_enter {
+    cursor: pointer;
+    right: 0;
+    margin-top: auto;
+}
+
+.container-comments {
+    position: relative;
+    padding-top: 10px;
+    font-family: 'Unbounded';
+    font-style: normal;
+    font-weight: 300;
+    font-size: 1.04vw;
+    line-height: 1.56vw;
+    border-top: 1px solid #865DF8;
+    min-height: 10px;
+    width: 100%;
+    opacity: 0;
+    /* Начальная прозрачность */
+    transform: translateY(-20px);
+    /* Начальное смещение сверху */
+    animation: slideIn 0.5s ease-in-out forwards;
+    /* Анимация */
+}
+
+@keyframes slideIn {
+    0% {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.container_messages {
+    display: flex;
+    align-items: center;
+}
+
+.btn_comment {
+    margin-top: 15px;
+    margin-left: 25px;
+    margin-right: 5px;
+}
+
+.comment_icon {
+    width: 40px;
+}
+
 .news {
     margin-top: 2.60vw;
     width: 39.32vw;
@@ -109,6 +287,7 @@ export default {
     font-size: 1.25vw;
     color: #865DF8;
 }
+
 .category_name {
     display: flex;
     justify-content: center;
@@ -151,8 +330,8 @@ export default {
 .like {
     margin-top: 15px;
     cursor: pointer;
-    margin-left: 20px;
-    gap: 15px;
+
+    gap: 10px;
     display: flex;
     align-items: center;
     font-size: 28px;
@@ -211,6 +390,7 @@ export default {
         font-size: 2vw;
 
     }
+
     .img_avatar {
         width: 10.06vw;
         height: 10.06vw;

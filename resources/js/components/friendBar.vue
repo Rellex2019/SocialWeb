@@ -3,33 +3,26 @@
         <div class="container">
             <div class="block5">
                 <div class="friends" :style="{ marginTop: customTop }">
-                    <p class="main_title_friends">Мои друзья</p>
+                    <p class="main_title_friends">Друзья</p>
 
                     <div v-if="!friends" v-for="friend in friendsInfo" class="one_friend">
-                        <img v-if="friend.user_info && friend.user_info.avatar" :src="linkApp + '/storage/' + friend.user_info.avatar" alt="" class="avatar_friend" />
-                        <img v-else :src="linkApp + '/img/img_acc.jpg'"  class="avatar_friend" />
+
+                        <div style="display: flex; align-items: center; gap: 1vw;">
+                        <img @click="$router.push(`/profile/${friend.id}`)" v-if="friend.user_info && friend.user_info.avatar" :src="linkApp + '/storage/' + friend.user_info.avatar" alt="" class="avatar_friend" />
+                        <img @click="$router.push(`/profile/${friend.id}`)" v-else :src="linkApp + '/img/img_acc.jpg'"  class="avatar_friend" />
                         <div class="text_friend"  @click="$router.push(`/profile/${friend.id}`)">
                             <p class="name_friend" v-if="friend.user_info">{{ friend.user_info.name + ' ' +
                                 friend.user_info.surname }}</p>
                             <p class="quote_friend" v-if="friend.user_info">{{ friend.user_info.quote }}</p>
                         </div>
+
+                        </div>                        
                         <a @click.prevent="openChat(friend.id, friend.chats.id ?? null)">
                             <img :src="linkApp + '/img/icons/chat.png'" alt="" class="avatar_icon" />
                         </a>
+
                     </div>
-                    <div v-if="friends" v-for="friend in friends" class="one_friend">
-                        
-                        <img v-if="friend.user_info && friend.user_info.avatar" :src="linkApp + '/storage/' + friend.user_info.avatar" alt="" class="avatar_friend" />
-                        <img v-else :src="linkApp + '/img/img_acc.jpg'"  class="avatar_friend" />
-                        <div class="text_friend"  @click="$router.push(`/profile/${friend.id}`)"> 
-                            <p class="name_friend" v-if="friend.user_info">{{ friend.user_info.name + ' ' +
-                                friend.user_info.surname }}</p>
-                            <p class="quote_friend" v-if="friend.user_info">{{ friend.user_info.quote }}</p>
-                        </div>
-                        <a @click.prevent="openChat(friend.id, friend.chats && friend.chats.id  ? friend.chats.id : null)">
-                            <img :src="linkApp + '/img/icons/chat.png'" alt="" class="avatar_icon" />
-                        </a>
-                    </div>
+
 
 
                 </div>
@@ -107,6 +100,7 @@ export default {
 }
 
 .main_title_friends {
+    font-family: 'Unbounded';
     width: 7.86vw;
     font-weight: 400;
     font-size: 1.04vw;
@@ -133,6 +127,7 @@ export default {
 }
 
 .avatar_friend {
+    cursor: pointer;
     width: 3.65vw;
     height: 3.65vw;
     border: 1px solid #865DF8;
@@ -140,7 +135,7 @@ export default {
 }
 
 .text_friend {
-    margin-left: -3.13vw;
+    cursor: pointer;
 }
 
 .quote_friend {
@@ -152,9 +147,11 @@ export default {
     font-size: 0.63vw;
     line-height: 0.78vw;
     color: rgba(134, 93, 248, 0.47);
+    font-family: 'Unbounded';
 }
 
 .avatar_icon {
+    cursor: pointer;
     width: 2.03vw;
     height: 1.93vw;
 }

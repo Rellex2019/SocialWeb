@@ -23,8 +23,8 @@
     <div class="content">
         <div class="container">
             <div class="container_messages">
-                <input class="enter_message" @keydown="handleKeyDown" v-model="inputData"
-                    placeholder="Введите сообщение"></input>
+                <textarea class="enter_message" @keydown="handleKeyDown" v-model="inputData"
+                    placeholder="Введите сообщение"></textarea>
                 <a @click.prevent="sendMessage"><img :src="linkApp + '/img/orpr.png'" alt="" class="icon_enter"></a>
             </div>
         </div>
@@ -39,7 +39,7 @@
                     class="" :key="message.id">
                     <div v-if="message.user_id && message.user_id != user.id" class="friend_messages">
                         <div class="msg">
-                            <div class="msg_content_friend">{{ message.content }}</div>
+                            <div class="msg_content_friend" v-html="message.content"></div>
                             <div class="time">{{ formatDate(message.updated_at) }}</div>
                             <span v-if="message.isRead" class="read-indicator">Прочитано</span>
                         </div>
@@ -47,7 +47,7 @@
 
                     <div v-if="message.user_id && message.user_id == user.id" class="my_messages">
                         <div class="my_msg">
-                            <div class="msg_content_my">{{ message.content }}</div>
+                            <div class="msg_content_my" v-html="message.content"></div>
                             <div class="time_my">{{ formatDate(message.updated_at) }}</div>
                             <span v-if="message.isRead" class="read-indicator">Прочитано</span>
                         </div>
@@ -303,6 +303,7 @@ export default {
 }
 
 .msg_content_friend {
+    word-break: break-all;
     font-weight: 400;
     font-size: 1.04vw;
     line-height: 1.30vw;
@@ -336,6 +337,7 @@ export default {
 }
 
 .msg_content_my {
+    word-break: break-all;
     font-weight: 400;
     font-size: 1.04vw;
     line-height: 1.30vw;

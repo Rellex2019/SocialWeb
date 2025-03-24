@@ -10,14 +10,26 @@
     </div>
     <form class="regs" @submit.prevent="sendDataForAuth">
         <label for="" class="Auth at">Авторизация</label>
+
+        
         <div class="form-group">
-            <input v-model="dataLog.login" type="text" class="form" id="login" name="login" value=""
+
+            <input v-model="dataLog.login" type="login" class="form" id="login" name="login" value=""
                 placeholder="Логин" />
+
             <input v-model="dataLog.password" type="password" class="form" id="passsword" name="password" value=""
                 placeholder="Пароль" />
         </div>
 
+
+
+
+
+
         <div class="form-group">
+            <div class="error-message" v-if="error">
+                Логин или пароль неверен
+            </div>
             <button class="btn-reg" type="submit" name="sendMe" value="1">
                 Войти
             </button>
@@ -43,6 +55,7 @@ export default {
                 login: "",
                 password: "",
             },
+            error: null,
         };
     },
     methods: {
@@ -51,7 +64,11 @@ export default {
             .then((response) => {
                 this.$router.push('/');
                 this.$store.commit('authStore/setUser', response.data);
-            });
+            })
+            .catch(e=>{
+                this.error= e.response.data;
+            })
+            ;
         },
 
     },
@@ -71,6 +88,16 @@ export default {
 };
 </script>
 <style scoped>
+.error-message {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    color: red;
+    font-size: 1vw;
+
+    white-space: nowrap;
+
+}
 body {
     margin: 0;
     font-family: "Unbounded", serif;
@@ -111,9 +138,10 @@ body {
 }
 
 .form-group {
-    gap: 1vw;
     display: flex;
     flex-direction: column;
+    gap: 1vw;
+    margin-bottom: 1vw;
 }
 
 .btn-reg {

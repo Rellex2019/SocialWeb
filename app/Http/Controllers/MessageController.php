@@ -70,29 +70,30 @@ class MessageController extends Controller
                 'message' => 'Сообщение отправлено',
                 'data' => $messageData,
             ]);
-        } else {
-            $newChat = Chat::create([
-                'name' => $user->userInfo->name . ' ' . $user->userInfo->surname,
-                'user_id' => $user->id,
-                'friend_id' => $id
-            ]);
-            $message = [
-                'chat_id' => $newChat->id,
-                'content' => $request->content,
-                'user_id' => $user->id
-            ];
-            if ($request->hasFile('file')) {
-                $file = $request->file('file');
-                $path = $file->store('uploads', 'public');
-                $message['file_path'] = $path;
-            }
-            $messageData = Message::create($message);
-            broadcast(new MessageSend($messageData))->toOthers();
-            return response()->json([
-                'message' => 'Чат создан, сообщение отправлено',
-                'data' => $messageData,
-            ]);
         }
+        //  else {
+        //     $newChat = Chat::create([
+        //         'name' => $user->userInfo->name . ' ' . $user->userInfo->surname . ', ' . $user->userInfo->name . ' ' . $user->userInfo->surname,
+        //         'user_id' => $user->id,
+        //         'friend_id' => $id
+        //     ]);
+        //     $message = [
+        //         'chat_id' => $newChat->id,
+        //         'content' => $request->content,
+        //         'user_id' => $user->id
+        //     ];
+        //     if ($request->hasFile('file')) {
+        //         $file = $request->file('file');
+        //         $path = $file->store('uploads', 'public');
+        //         $message['file_path'] = $path;
+        //     }
+        //     $messageData = Message::create($message);
+        //     broadcast(new MessageSend($messageData))->toOthers();
+        //     return response()->json([
+        //         'message' => 'Чат создан, сообщение отправлено',
+        //         'data' => $messageData,
+        //     ]);
+        // }
     }
 
     public function getMessage(Request $request, $id)
@@ -121,32 +122,40 @@ class MessageController extends Controller
     {
 
         $message = Message::where('id', $id)->where('user_id', $request->user()->id)->first();
-        if($message)
-        {
+        if ($message) {
             Message::find($id)->delete();
             broadcast(new MessageSend($message))->toOthers();
             return response()->json([$message]);
         }
-        return response()->json(['message'=>'Сообщения не существует или же у вас нет прав']);
+        return response()->json(['message' => 'Сообщения не существует или же у вас нет прав']);
     }
     public function getChats(Request $request)
     {
         $user = $request->user();
 
-        // Получаем чаты, в которых участвует пользователь
         $chats = Chat::where('user_id', $user->id)
             ->orWhere('friend_id', $user->id)
             ->with(['messages' => function ($query) {
-                $query->orderBy('updated_at', 'desc'); // Сортируем сообщения по updated_at
-            }])
+                $query->orderBy('updated_at', 'desc'); 
+            }, 'user', 'friend'])
             ->get();
 
         // Добавляем последнее сообщение в каждый чат
         $data = [
-            'chats' => $chats->map(function ($chat) {
+            'chats' => $chats->map(function ($chat) use ($user) {
+                $friend = $chat->user_id == $user->id ? $chat->friend : $chat->user;
+
+
                 return [
                     'chat' => $chat,
-                    'last_message' => $chat->messages->first(), // Получаем последнее сообщение
+                    'last_message' => $chat->messages->first(),
+                    'friend' => [
+                        'id' => $friend->id,
+                        'name' => $friend->userInfo->name,
+                        'surname' => $friend->userInfo->surname,
+                        'avatar' => $friend->userInfo->avatar,
+                        'quote' => $friend->userInfo->quote,
+                    ]
                 ];
             }),
         ];

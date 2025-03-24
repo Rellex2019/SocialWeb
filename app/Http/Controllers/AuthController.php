@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Chat;
 use App\Models\User;
 use App\Models\UserInfo;
 
@@ -76,10 +77,47 @@ class AuthController extends Controller
     public function getUser(Request $request, $id)
     {
         // $user = $request->user()->load('userInfo');
+
         $user = User::find($id)->load('userInfo');
-        $allFriend = $user->allFriends()->with('userInfo')->get();
-        $user->all_friends = $allFriend;
-        return response()->json($user);
+        $chatIds = $user->chats()->pluck('id');
+
+        $allFriend = $user->allFriends()->get()->map(function ($friend) use ($chatIds, $user) {
+            $chat = Chat::where('user_id', $friend->id)
+            ->where('friend_id', $user->id)
+            ->orWhere('friend_id', $friend->id)
+            ->where('user_id', $user->id)
+            ->whereIn('id', $chatIds)
+            ->first();
+
+            if (!$chat) {
+                $chat = Chat::create([
+                    'name' => $user->userInfo->name.' и '.$friend->userInfo->name,
+                    'user_id' => $user->id,
+                    'friend_id' => $friend->id,
+                ]);
+            }
+
+            return [
+                'id' => $friend->id,
+                'name' => $friend->userInfo->name,
+                'surname' => $friend->userInfo->surname,
+                'avatar' => $friend->userInfo->avatar,
+                'quote' => $friend->userInfo->quote,
+                'chat_id' => $chat->id, 
+            ];
+
+        });
+    
+        $data = [
+            'id' => $user->id,
+            'friends' => $allFriend,
+            'info' => $user->userInfo,
+            'role_id' => $user->role_id,
+            'email' => $user->email,
+            'created_at' => $user->created_at,
+            'updated_at' => $user->updated_at,
+        ];
+        return response()->json($data);
     }
     public function isLoginAvailability(Request $request)
     {

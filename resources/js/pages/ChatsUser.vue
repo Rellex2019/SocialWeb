@@ -17,16 +17,27 @@
         <div class="wrapper">
 
 
-            <div v-for="chat in chats.chats" :key="chat.id" class="chat">
+            <div v-if="chats.length>0" @click="openChat(chat.chat.id)" v-for="chat in chats.chats" :key="chat.id" class="chat">
                 <div class="name_chat">
-                    <img class="img_avatar" :src="linkApp + '/img/img_acc.jpg'" alt="">
-                    <div class="chats">
-                        <p class="name_chat_f">{{ chat.chat.name }}</p>
-                        <p style="margin-top: 15px;" class="text_chat" v-if="chat.last_message">{{
-                            chat.last_message.content }}</p>
-                        <p style="margin-top: 15px;" class="text_chat" v-else="chat.last_message">Этот чатик пустой</p>
-                    </div> <img class="img_chat" @click="openChat(chat.chat.id)" :src="linkApp + '/img/icons/chat.png'" alt="">
+                    <div  style="display: flex; align-items: center;" class="">
+                        <img class="img_avatar" v-if="chat.friend && chat.friend.avatar"
+                            :src="linkApp + '/storage/' + chat.friend.avatar" alt="">
+                        <img  class="img_avatar" v-else :src="linkApp + '/img/img_acc.jpg'" alt="">
+                        <div class="chats">
+                            <p class="name_chat_f">{{ chat.friend.name+' '+chat.friend.surname }}</p>
+                            <p style="margin-top: 15px;" class="text_chat" v-if="chat.last_message">{{
+                                chat.last_message.content }}</p>
+                            <p style="margin-top: 15px;" class="text_chat" v-else="chat.last_message">Этот чатик пустой
+                            </p>
+                        </div>
+                    </div>
+                    <img class="img_chat" @click="openChat(chat.chat.id)" :src="linkApp + '/img/icons/chat.png'" alt="">
                 </div>
+
+            </div>
+            <div v-else class="nothink">
+                <p>У вас нет активных чатов :(</p>
+                <p>Сперва создайте чат, нажав на значёк сообщения рядом с другом</p>
 
             </div>
         </div>
@@ -52,7 +63,6 @@ export default {
             await axios.get('/chat/users/get')
                 .then(response => {
                     this.chats = response.data;
-                    console.log(response);
                 })
         },
         async openChat(chatId) {
@@ -70,13 +80,18 @@ export default {
 }
 </script>
 <style scoped>
+.nothink{
+    text-align: center;
+    font-size: 24px;
+}
 .name_chat {
+    width: 56vw;
     display: flex;
     margin-bottom: 0.78vw;
-    width: 56.35vw;
     height: 7.19vw;
     background: #F6F3FF;
     border-radius: 1.56vw;
+    justify-content: space-between;
 }
 
 .name_chat_f {
@@ -86,8 +101,8 @@ export default {
 }
 
 .text_chat {
-
-    width: 15.10vw;
+    overflow: hidden;
+    width: 42.1vw;
     height: 0.78vw;
     font-family: 'Unbounded';
     font-style: normal;
@@ -95,18 +110,20 @@ export default {
     font-size: 0.83vw;
     line-height: 1.04vw;
     color: rgba(134, 93, 248, 0.47);
+    word-break: break-all;
+    text-overflow: ellipsis;
+    text-wrap: nowrap;
 }
 
 .img_chat {
     cursor: pointer;
-    margin-left: 28.65vw;
     margin-top: 1.56vw;
     width: 3.44vw;
     height: 3.44vw;
 }
 
 .img_avatar {
-
+    border-radius: 2.5vw;
     width: 5.36vw;
     height: 5.36vw;
     margin-top: 0.78vw;

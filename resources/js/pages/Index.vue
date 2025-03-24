@@ -27,7 +27,7 @@
         <div class="category-content" id="categoryContent">
             <!-- <p  id="contentText">Выберите категорию, чтобы увидеть содержимое.</p> -->
 
-            <Post :Posts="allFilteredPost.length ? allFilteredPost : allPosts" @like="getAllPosts" />
+            <Post :Posts="allFilteredPost" @like="getAllPosts" />
         </div>
     </div>
     <!-- <script>
