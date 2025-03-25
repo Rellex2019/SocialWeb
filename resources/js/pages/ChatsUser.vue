@@ -17,7 +17,7 @@
         <div class="wrapper">
 
 
-            <div v-if="chats.length>0" @click="openChat(chat.chat.id)" v-for="chat in chats.chats" :key="chat.id" class="chat">
+            <div v-if="Object.keys(chats).length>0" @click="openChat(chat.chat.id)" v-for="chat in chats.chats" :key="chat.id" class="chat">
                 <div class="name_chat">
                     <div  style="display: flex; align-items: center;" class="">
                         <img class="img_avatar" v-if="chat.friend && chat.friend.avatar"
@@ -103,7 +103,6 @@ export default {
 .text_chat {
     overflow: hidden;
     width: 42.1vw;
-    height: 0.78vw;
     font-family: 'Unbounded';
     font-style: normal;
     font-weight: 400;

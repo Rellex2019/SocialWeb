@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\FriendController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\PostController;
@@ -18,7 +19,9 @@ Route::post('/check/login_availability', [AuthController::class, 'isLoginAvailab
 //ПОСТы без авторизации
 Route::get('/post/get_posts', [PostController::class, 'getPosts']);
 //Категори без авторизации
-Route::get('/get/categories', [PostController::class, 'getCategories']);
+Route::get('/get/categories', [CategoryController::class, 'getCategories']);
+
+
 //Комментарии
 Route::get('post/{id}/comment', [PostController::class, 'getComment']);
 
@@ -36,8 +39,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::delete('/user/account/delete', [AuthController::class, 'deleteAccount']);
 
-
-
+//категории
+    Route::post('/category/create', [CategoryController::class, 'storeCategory']);
+    Route::delete('/category/{id}/delete', [CategoryController::class, 'deleteCategory']);
     //Друзья 
     Route::get('/friend', [FriendController::class, 'getFriend']);
     Route::get('/people', [FriendController::class, 'getPeople']);
@@ -67,7 +71,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/posts/user/{id}', [PostController::class, 'getUserPosts']);
     Route::post('/post/create', [PostController::class, 'storePost']);
     Route::delete('/post/user/delete/{id}', [PostController::class, 'deleteMyPost']);
-    Route::patch('/post/user/change/{id}', [PostController::class, 'changeMyPost']);
+    Route::post('/post/user/change/{id}', [PostController::class, 'changeMyPost']);
     //Лайки
     Route::post('/post/{id}/like', [PostController::class, 'toggleLike']);
     //Комментарии - надо сделать

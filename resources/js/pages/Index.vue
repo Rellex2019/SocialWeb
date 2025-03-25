@@ -15,7 +15,7 @@
         <FriendBar />
 
 
-        <!-- ДОДЕЛАТЬ КОГДА СДЕЛАЮ КАТЕГОРИИ ПОЛЬЗОВАТЕЛЕЙ -->
+
         <div class="categories">
             <div class="category-buttons" id="categoryButtons">
                 <button class="category-button" @click="filteredPost(9999)" data-id="1">Всё</button>
@@ -23,13 +23,33 @@
                     v-for="category in selectedCategories" data-id="1">{{ category.name }}</button>
             </div>
         </div>
-        <!-- --------------------------- -->
-        <div class="category-content" id="categoryContent">
-            <!-- <p  id="contentText">Выберите категорию, чтобы увидеть содержимое.</p> -->
 
-            <Post :Posts="allFilteredPost" @like="getAllPosts" />
+        <div class="category-content" id="categoryContent">
+
+            <Post :Posts="allFilteredPost" @like="getAllPosts"  @delete-post="getAllPosts"/>
         </div>
     </div>
+
+    <!-- <div class="setup-complete-container" v-if="user.setup_complete && user.setup_complete == false && isModal">
+        <div class="window">
+            <div>Выберите интересущиюе вас категории</div>
+            <input type="searсh" v-model="searchQuery" placeholder="Введите название категории"
+                @input="filterCategories" class="input_text">
+            <div class="container_categories">
+                <div class="category" :key="category.id" v-for="category in filteredCategories"
+                    :class="[ { selected: selectedCategoriesModal.includes(category.id) }]"
+                    @click="toggleCategory(category.id)">{{ category.name }}</div>
+            </div>
+            <div style="width: 100%; display: flex; justify-content: space-between; align-items: end;">
+                <button class="btn_save" @click="isModal=false">Нет, спасибо</button>
+                <button @click="updateCategories" class="btn_save2">Сохранить</button>
+            </div>
+
+        </div>
+    </div> -->
+
+
+
     <!-- <script>
         function openPopup() {
             document.getElementById("popup").style.display = "flex";
@@ -54,6 +74,7 @@
     <script src="./js/category.js"></script> -->
 </template>
 <script>
+import { mapGetters } from 'vuex/dist/vuex.cjs.js';
 import FriendBar from '../components/friendBar.vue';
 import Post from '../components/Post.vue';
 import SideMenu from '../components/sideMenu.vue';
@@ -73,6 +94,13 @@ export default {
             friendsInfo: [],
             linkApp: "",
             selectedCategories: [],
+
+
+            categories: [],
+            selectedCategoriesModal: [],
+            // searchQuery: '',
+            // filteredCategories: [],
+            // isModal: true
         }
     },
     components: {
@@ -81,7 +109,12 @@ export default {
         Post
     },
     methods: {
-
+        getCategories() {
+            axios.get('/get/categories').then(response => {
+                this.categories = response.data;
+                // this.filteredCategories = this.categories;
+            })
+        },
         async getAllPosts() {
             await axios.get("/post/get_posts")
                 .then((response) => {
@@ -106,23 +139,121 @@ export default {
         },
         filteredPost(categoryId) {
             this.filterId = categoryId;
-            if (categoryId === 9999) { 
-                this.allFilteredPost = this.allPosts; 
+            if (categoryId === 9999) {
+                this.allFilteredPost = this.allPosts;
             } else {
                 this.allFilteredPost = this.allPosts.filter(post => post.category.id == categoryId); // Фильтруем по категории
             }
-        }
+        },
+        // filterCategories() {
+        //     const query = this.searchQuery.toLowerCase();
+        //     this.filteredCategories = this.categories.filter(category =>
+        //         category.name.toLowerCase().includes(query)
+        //     );
+        // },
+        // toggleCategory(id) {
+        //     const index = this.selectedCategoriesModal.indexOf(id);
+        //     if (index === -1) {
+        //         this.selectedCategoriesModal.push(id);
+        //     } else {
+        //         this.selectedCategoriesModal.splice(index, 1);
+        //     }
+        // },
+        // updateCategories()
+        // {
+        //     axios.patch('/user/category/change', {'ids': this.selectedCategoriesModal})
+        //     .then(response =>{
+        //         this.selectedCategories = response.data;
+        //     })
+        //     this.isModal = false;
+        // }
     },
     mounted() {
         this.getAllPosts();
         this.getSelectedCategory();
+        this.getCategories();
     },
     created() {
         this.linkApp = `${import.meta.env.VITE_APP_URL}`;
     },
+    computed: {
+        ...mapGetters('authStore', ['isAuthenticated', 'user']),
+    },
 };
 </script>
 <style scoped>
+.selected{
+    color: #F4F4F4;
+    background-color: #865DF8;
+}
+.btn_save {
+    cursor: pointer;
+    margin-left: 0.5vw;
+    padding: 1vw 2vw;
+    color: #865df8;
+}
+
+.btn_save2 {
+    cursor: pointer;
+    margin-right: 0.5vw;
+    border-radius: 0.7vw;
+    padding: 1vw 2vw;
+    color: #f2edfe;
+    background-color: #865df8;
+}
+
+.input_text {
+    font-size: 0.8vw;
+    cursor: pointer;
+    width: 30vw;
+    padding: 0.4vw 1vw;
+    border-radius: 2vw;
+    border: 1px solid #865DF8;
+}
+
+.container_categories {
+
+    flex-wrap: wrap;
+    display: flex;
+    gap: 2vw;
+}
+
+.category {
+    font-size: 0.9vw;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5vw 1vw;
+    border-radius: 2vw;
+    border: 1px solid #865DF8;
+}
+
+.setup-complete-container {
+    position: fixed;
+    display: flex;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+.window {
+    padding: 1.2vw 1vw;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 1vw;
+    width: 40vw;
+    background-color: #f2edfe;
+    border-radius: 1.5vw;
+}
+
+
 .like {
     margin-top: 15px;
     cursor: pointer;

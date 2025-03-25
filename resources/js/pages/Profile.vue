@@ -77,7 +77,7 @@
             <p style="margin-top: 30px;">Вы ещё не создавали постов, хотите добавить?</p>
             <button @click="$router.push('/post/create')" class="btn_post">Создать пост</button>
         </div>
-        <Post v-else :Posts="userPosts" @like="getPosts" />
+        <Post v-else :Posts="userPosts" @like="getPosts" @delete-post="getPosts"/>
     </div>
 
 </template>
@@ -103,6 +103,7 @@ export default {
     watch: {
         '$route.params.id': {
             handler(newId, oldId) {
+                this.profileId = newId;
                 this.getPosts(newId);
                 this.getUser(newId);
             },
@@ -119,9 +120,6 @@ export default {
             axios.get(`/posts/user/${id ? id : this.profileId}`).then(response => {
                 this.userPosts = response.data;
             })
-                .catch((error) => {
-                    this.userPosts = error.response;
-                })
         },
         async getUser(id) {
             await axios.get(`/user/info/${id ? id : this.profileId}`)

@@ -12,8 +12,8 @@
                 <button type="button" class="upload-btn" onclick="document.getElementById('imageUpload').click();">
                     <img class="pr_edit" v-if="fields.imagePreview" :src="fields.imagePreview"
                         alt="Предварительный просмотр" style="max-width: 200px; margin-top: 10px;">
-                    <img class="pr_edit" v-else-if="user.user_info && user.user_info.avatar"
-                        :src="linkApp + '/storage/' + user.user_info.avatar" alt="">
+                    <img class="pr_edit" v-else-if="user.info && user.info.avatar"
+                        :src="linkApp + '/storage/' + user.info.avatar" alt="">
                     <img class="pr_edit" v-else :src="linkApp + '/img/img_acc.jpg'" alt="">
                 </button>
                 <input type="file" id="imageUpload" name="imageUpload" accept="image/*" style="display:none;"
@@ -163,9 +163,9 @@ export default {
             await axios.get(`/user/info/${this.profileId}`)
                 .then(response => {
                     this.user = response.data;
-                    this.fields.nameUser = response.data.user_info.name;
-                    this.fields.surnameUser = response.data.user_info.surname;
-                    this.fields.quote = response.data.user_info.quote;
+                    this.fields.nameUser = response.data.info.name;
+                    this.fields.surnameUser = response.data.info.surname;
+                    this.fields.quote = response.data.info.quote;
                 })
         },
         handleChangePassword() {

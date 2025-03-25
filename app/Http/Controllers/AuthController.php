@@ -133,7 +133,8 @@ class AuthController extends Controller
     public function changeLogin(Request $request)
     {
         $user = $request->user();
-        if(!User::where('login',$request->login)->get())
+        $existingUser = User::where('login', $request->login)->first();
+        if(!$existingUser || $existingUser->id == $user->id)
         {
             User::where('id', $user->id)->update(['login' => $request->login]);
             return response()->json(['message' => 'Логин успешно изменен.'], 200);

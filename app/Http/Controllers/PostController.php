@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\CommentSend;
 use App\Models\Category;
 use App\Models\Comment;
 use App\Models\Post;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class PostController extends Controller
 {
@@ -36,7 +38,9 @@ class PostController extends Controller
   public function getUserPosts(Request $request, $id)
   {
     $user = User::find($id);
-    $posts = $user->posts()->with('photos', 'likes', 'user.userInfo', 'category')->get();
+    $posts = $user->posts()->with('photos', 'likes', 'user.userInfo', 'category')
+    ->orderBy('created_at', 'desc')
+    ->get();
     foreach ($posts as $post) {
       $post->likes->makeHidden(['pivot']);
       $post->makeHidden(['user_id', 'category_id']);
@@ -45,7 +49,9 @@ class PostController extends Controller
   }
   public function getPosts(Request $request)
   {
-    $posts = Post::with(['photos', 'likes', 'user.userInfo', 'category'])->get();
+    $posts = Post::with(['photos', 'likes', 'user.userInfo', 'category'])
+    ->orderBy('created_at', 'desc')
+    ->get();
     foreach ($posts as $post) {
       $post->likes->makeHidden(['pivot']);
       $post->makeHidden(['user_id', 'category_id']);
@@ -58,21 +64,37 @@ class PostController extends Controller
     $user->posts()->where('id', $request->id)->delete();
     return response()->json('Пост под id удален:' . `$request->id`);
   }
-  public function changeMyPost(Request $request)
+  public function changeMyPost(Request $request, $id)
   {
     $user = $request->user();
-    $changedPost = $user->posts()->where('id', $request->id)->update([
+    $post = $user->posts()->where('id', $id)->first();
+
+    if (!$post) {
+      return response()->json(['error' => 'Пост не найден'], 404);
+    }
+
+
+    $post->update([
       'title' => $request->title,
-      'body' => $request->body
+      'body' => $request->body,
+      'category_id' => $request->category_id
     ]);
-    return response()->json('Пост под id изменен:' . $changedPost);
+
+    if ($request->hasFile('photos')) {
+      foreach ($post->photos as $photo) {
+        Storage::disk('public')->delete($photo->path);
+        $photo->delete();
+      }
+      foreach ($request->file('photos') as $file) {
+        $path = $file->store('photos', 'public');
+        $post->photos()->create(['path' => $path]);
+      }
+    }
+
+    return response()->json(['message' => 'Пост изменен']);
   }
 
-  public function getCategories(Request $request)
-  {
-    $categories = Category::all();
-    return response()->json($categories);
-  }
+
   public function changeCategories(Request $request)
   {
     $user = $request->user();
@@ -83,11 +105,11 @@ class PostController extends Controller
 
   public function getUserCategories(Request $request)
   {
-      $user = $request->user(); 
-      $categories = $user->categories()->get();
-      return response()->json($categories);
+    $user = $request->user();
+    $categories = $user->categories()->get();
+    return response()->json($categories);
   }
-  
+
   //Лайки
   public function toggleLike(Request $request, $id)
   {
@@ -108,7 +130,9 @@ class PostController extends Controller
 
   public function getComment(Request $request, $id)
   {
-    $comments = Comment::where('post_id', $id)->get();
+    $comments = Comment::where('post_id', $id)
+    ->orderBy('created_at', 'desc')
+    ->get();
     $commentsWithUser = $comments->map(function ($comment) {
       $user = User::find($comment->user_id);
       return [
@@ -126,6 +150,12 @@ class PostController extends Controller
       'post_id' => $id,
       'body' => $request->body
     ]);
-    return response()->json(['message' => 'Комментарий был создан']);
+    $ownerComment = User::find($comment->user_id);
+    broadcast(new CommentSend($comment));
+    return response()->json([
+      'message' => 'Комментарий был создан',
+      'comment' => $comment,
+      'user'=> $ownerComment->userinfo
+    ]);
   }
 }

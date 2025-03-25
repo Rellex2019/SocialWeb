@@ -27,7 +27,8 @@ class User extends Authenticatable
         'email',
         'password',
         'userInfo_id',
-        'role_id'
+        'role_id',
+        'setup_complete'
     ];
 
 

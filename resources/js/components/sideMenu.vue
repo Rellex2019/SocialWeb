@@ -25,13 +25,9 @@
                     <img :src="linkApp + '/img/icons/icons_new_post.png'" alt="" class="icon_link" />
                     <RouterLink to="/post/create" class="name_link">Создать пост</RouterLink>
                 </div>
-                <div class="links_page" v-if="user.role_id == 1">
-                    <img :src="linkApp + '/img/icons/icons_category.png'" alt="" class="icon_link" />
-                    <a href="/category.html" class="name_link">Категории</a>
-                </div>
                 <div class="links_page"v-if="user.role_id == 1">
                     <img :src="linkApp + '/img/icons/icons_category.png'" alt="" class="icon_link" />
-                    <a href="/new_category.html" class="name_link">Создать категорию</a>
+                    <RouterLink to="/category/create" class="name_link">Создать категорию</RouterLink>
                 </div>
                 <div class="exit_link_nav">
                     <img :src="linkApp + '/img/icons/icons_logout.png'" alt="" class="icon_link" />
@@ -144,6 +140,7 @@ export default{
 }
 .name_link,
 .exit_link {
+    font-family: "Unbounded", serif;
     cursor: pointer;
     width: 9.22vw;
     font-weight: 400;

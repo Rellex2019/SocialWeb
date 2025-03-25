@@ -1,173 +1,118 @@
 <template>
-
     <SideMenu />
+
     <div class="content" id="content">
         <div class="name_cart">
-            <p>{{Object.keys(localPost).length > 0 ?'Изменение поста': 'Новый пост'}}</p>
+            <p>Управление категориями</p>
         </div>
         <a href=""><img class="menu_mob" :src="linkApp + '/img/icons/menu_mob.png'" alt=""></a>
 
         <div class="form-container">
+            <p class="title">Удаление категорий</p>
+            <p class="tip">Нажмите на категорию для удаления</p>
+            <div class="container_categories">
+                <div class="category" @click="deleteCategory(category)" :key="category.id"
+                    v-for="category in categories">{{ category.name }}</div>
+            </div>
 
-            <form @submit.prevent="Object.keys(localPost).length > 0 ? changePost(localPost.id) : createPost">
-                <label for="postText">Заголовок</label>
-                <input v-model="fields.title" class="texr-2" id="postText" name="postText" placeholder="Заголовок"
-                    required />
-                <label for="postText">Текст поста</label>
-                <textarea v-model="fields.body" class="texr-post" id="postText" name="postText"
-                    placeholder="Что нового?" required></textarea>
 
-                <label for="category">Выбор категории</label>
-                <select @change="selectCategory" id="categories" class="category">
-                    <option v-for="category in categories" :key="category.id" :value="category.id">
-                        {{ category.name }}
-                    </option>
-                </select>
-
-                <div class="image-preview" id="imagePreview">
-                    <label for="">Добавить фото</label>
-                </div>
-                <input type="file" id="imageUpload" name="imageUpload" ref="imageUpload" accept="image/*"
-                    style="display: none;" @change="previewImage">
-
-                <img @click="openFileInput" v-if="fields.imagePreview" :src="fields.imagePreview" alt="">
-                <img @click="openFileInput" v-for="photo in localPost.photos" v-else-if="localPost.photos && localPost.photos.length>0"
-                    :src="linkApp + '/storage/' + photo.path" alt="">
-                <img @click="openFileInput" v-else :src="linkApp + '/img/icons/add_foto.png'" alt="">
-                <button class="but_post" type="submit" v-if="Object.keys(localPost).length > 0">изменить</button>
-                <button class="but_post" type="submit" v-else>опубликовать</button>
-            </form>
+            <div class="container_create">
+                <p class="title">Добавление категорий</p>
+                <input class="input_text" v-model="category" type="text" placeholder="Введите название новой категории">
+                <button class="but_post" @click="addCategory" type="submit">Создать</button>
+            </div>
         </div>
     </div>
 </template>
 <script>
-import { mapGetters } from 'vuex/dist/vuex.cjs.js';
 import SideMenu from '../components/sideMenu.vue';
 
 export default {
-    name: 'CreatePost',
+    name: 'AddCategory',
     data() {
         return {
             linkApp: '',
-            fields: {
-                title: '',
-                body: '',
-                selectedCategory: 1,
-                imagePreview: null,
-                imageFile: null,
-            },
             categories: [],
-            localPost: [],
+            category: '',
         }
     },
-    props: {
-        post: {
-            required: false
-        }
-    },
-    watch: {
-        post: {
-            handler(newId, oldId) {
-                this.initialField();
-            },
+    methods: {
+        getCategories() {
+            axios.get('/get/categories').then(response => {
+                this.categories = response.data;
+            })
+        },
+        addCategory() {
+            axios.post('/category/create', { 'name': this.category })
+                .then(response => {
+                    this.categories.push(response.data.category);
+                    this.category = '';
+                })
+        },
+        deleteCategory(category) {
+            let confirm = window.confirm(`Вы уверены, что хотите удалить категорию "${category.name}"?`);
+            if (confirm) {
+                axios.delete(`/category/${category.id}/delete`)
+                    .then(response => {
+                        this.categories = this.categories.filter(categoryDB => { return categoryDB.id != category.id });
+                    })
+            }
+
         }
     },
     components: {
         SideMenu
     },
-    methods: {
-        openFileInput() {
-            this.$refs.imageUpload.click();
-        },
-        previewImage(event) {
-            const selectedPhotos = Array.from(event.target.files);
-            this.fields.imageFile = selectedPhotos;;
-
-
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                this.fields.imagePreview = e.target.result;
-            };
-
-            if (selectedPhotos[0]) {
-                reader.readAsDataURL(selectedPhotos[0]);
-            }
-        },
-        createPost() {
-            const formData = new FormData();
-            formData.append('title', this.fields.title);
-            formData.append('body', this.fields.body);
-            formData.append('category_id', this.fields.selectedCategory);
-            if (this.fields.imageFile) {
-                this.fields.imageFile.forEach(file => {
-                    formData.append('photos[]', file);
-                });
-            }
-            axios.post('/post/create', formData, {
-                headers: {
-                    "Content-Type": 'multipart/form-data'
-                }
-            })
-                .then(response => {
-                    this.$router.push(`/profile/${this.user.id}`)
-                })
-        },
-        getCategories() {
-            axios.get('/get/categories').then(response => {
-                this.categories = response.data;
-            })
-                .catch((error) => {
-                    this.categories = error.response;
-                })
-        },
-        selectCategory(event) {
-            this.fields.selectedCategory = event.target.value;
-        },
-        initialField() {
-            this.localPost = [];
-            this.fields = [];
-            if (this.post) {
-                this.localPost = (JSON.parse(this.post));
-                this.fields = { ...this.localPost };
-                this.fields = { ...this.fields, selectedCategory: this.localPost.category.id }
-                console.log(this.localPost);
-            }
-        },
-        changePost(id) {
-            const formData = new FormData();
-            formData.append('title', this.fields.title);
-            formData.append('body', this.fields.body);
-            formData.append('category_id', this.fields.selectedCategory);
-            if (this.fields.imageFile) {
-                this.fields.imageFile.forEach(file => {
-                    formData.append('photos[]', file);
-                });
-            }
-            axios.post(`/post/user/change/${id}`, formData, {
-                headers: {
-                    "Content-Type": 'multipart/form-data'
-                }
-            })
-                .then(response => {
-                    this.$router.push(`/profile/${this.user.id}`)
-                })
-        }
+    mounted() {
+        this.getCategories();
     },
     created() {
         this.linkApp = `${import.meta.env.VITE_APP_URL}`;
     },
-    computed: {
-        ...mapGetters('authStore', ['isAuthenticated', 'user']),
-    },
-    mounted() {
-        this.initialField();
-        this.getCategories();
-    }
 }
 </script>
 <style scoped>
-body {
-    font-family: 'Unbounded';
+.tip {
+    font-size: 1vw;
+    margin-bottom: 1vw;
+}
+
+.title {
+    font-size: 1.3vw;
+    margin-bottom: 2vw;
+}
+
+.container_create {
+
+    margin-top: 4vw;
+    display: flex;
+    flex-direction: column;
+    gap: 1vw;
+}
+
+.input_text {
+    font-size: 1vw;
+    cursor: pointer;
+    width: 30vw;
+    padding: 0.5vw 1vw;
+    border-radius: 2vw;
+    border: 1px solid #865DF8;
+}
+
+.container_categories {
+
+    flex-wrap: wrap;
+    width: 65vw;
+    display: flex;
+    gap: 2vw;
+}
+
+.category {
+    font-size: 1vw;
+    cursor: pointer;
+    padding: 0.8vw 2vw;
+    border-radius: 2vw;
+    border: 1px solid #865DF8;
 }
 
 .form-container {
@@ -274,7 +219,7 @@ option {
     border: none;
     cursor: pointer;
     font-family: 'Unbounded';
-    margin-top: 2.60vw;
+
 }
 
 .but_post:hover {
@@ -459,12 +404,11 @@ a {
 
 
 .name_cart {
-    margin-left: 59.90vw;
+    margin-left: 55.90vw;
     margin-bottom: 2.60vw;
     margin-top: 2.08vw;
     display: flex;
     justify-content: center;
-
     background: #865DF8;
     border-radius: 1.56vw;
     font-weight: 300;
@@ -477,15 +421,6 @@ a {
 
 .name_cart p {
     padding: 0.52vw 0.26vw;
-}
-
-.texr-2 {
-    font-size: 1vw;
-    width: 20vw;
-    height: 3vw;
-    background-color: #F3EFFE;
-    border-radius: 2vw;
-    padding-left: 1vw;
 }
 
 @media ((min-width: 320px) and (max-width: 766px)) {
@@ -621,7 +556,6 @@ a {
         height: 30vw;
         font-size: 3vw;
     }
-
 
     select {
         width: 90vw;

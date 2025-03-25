@@ -13,7 +13,14 @@
                         <p class="category_name">{{ post.category.name.toLowerCase() }}</p>
                     </div>
                 </div>
-                <div class="time" style="margin-top: 0.25vw;">{{ formatDate(post.updated_at) }}</div>
+                <div style="display: flex; flex-direction: column; justify-content: space-between; align-items: end;">
+                    <div class="time" style="margin-top: 0.25vw;">{{ formatDate(post.created_at) }}</div>
+
+                    <button class="redact" v-if="post.user.id == user.id" @click="goToEditPost(post)">Изменить
+                        пост</button>
+                    <button class="redact" v-if="post.user.id == user.id" @click="deletePost(post.id)">Удалить
+                        пост</button>
+                </div>
             </div>
 
             <div class="new_content">
@@ -39,21 +46,21 @@
                                 :src="linkApp + '/img/icons/chat.png'" alt="" class="comment_icon" /></button>
 
                     </div>
-                    <button v-if="isModalOpen" @click="closeComments" class="btn_comment"
-                        style="font-size: 32px; color: #865DF8;">X</button>
+                    <button v-if="isModalOpen == post.id" @click="closeComments" class="btn_comment"
+                        style="font-size: 32px; color: #865DF8;">✕</button>
                 </div>
                 <div v-if="isModalOpen == post.id" class="container-comments">
-                    <div class="nothing" v-if="!comments">Напишите комментарий первым</div>
+                    <div class="nothing" v-if="comments.length < 1">Напишите комментарий первым</div>
                     <div class="container_comment">
                         <div v-for="comment in comments" :key="comment.comment.id" class="comment">
-                                <div @click="$router.push(`/profile/${comment.comment.user_id}`)" class="user-comment">
+                            <div @click="$router.push(`/profile/${comment.comment.user_id}`)" class="user-comment">
 
-                                    <img class="img_avatar-comment" v-if="comment.user && comment.user.avatar"
-                                        :src="linkApp + '/storage/' + comment.user.avatar" alt="">
-                                    <img class="img_avatar-comment" v-else :src="linkApp + '/img/img_acc.jpg'" alt="">
+                                <img class="img_avatar-comment" v-if="comment.user && comment.user.avatar"
+                                    :src="linkApp + '/storage/' + comment.user.avatar" alt="">
+                                <img class="img_avatar-comment" v-else :src="linkApp + '/img/img_acc.jpg'" alt="">
 
-                                    {{ comment.user.name + ' ' + comment.user.surname }}
-                                </div>
+                                {{ comment.user.name + ' ' + comment.user.surname }}
+                            </div>
 
                             <div class="comment-body">{{ comment.comment.body }}</div>
                             <div>{{ formatDate(comment.comment.updated_at) }}</div>
@@ -75,10 +82,12 @@
     </div>
 </template>
 <script>
+import { mapGetters } from 'vuex/dist/vuex.cjs.js';
+
 
 export default {
     name: 'Post',
-    emits: ['like'],
+    emits: ['like', 'delete-post'],
     data() {
         return {
             linkApp: '',
@@ -100,13 +109,19 @@ export default {
                 })
         },
         async openComments(commentId) {
-            this.comments = [];
 
-            await axios.get(`/post/${commentId}/comment`)
-                .then(response => {
-                    this.comments = response.data;
-                    this.isModalOpen = commentId;
-                })
+            if (this.isModalOpen == commentId) {
+                this.isModalOpen = null;
+                this.comments = [];
+            }
+            else {
+                await axios.get(`/post/${commentId}/comment`)
+                    .then(response => {
+                        this.comments = response.data;
+                        this.isModalOpen = commentId;
+                        console.log(this.comments);
+                    })
+            }
         },
         closeComments() {
             this.isModalOpen = null;
@@ -117,9 +132,12 @@ export default {
             formData.append('body', this.comment.replace(/\n/g, '<br>'));
             axios.post(`/post/${commentId}/comment`, formData)
                 .then(response => {
-                    console.log(response.data);
                     this.comment = '';
-                    this.openComments(commentId);
+                    this.comments.push({
+                        'comment': response.data.comment,
+                        'user': response.data.user
+                    });
+                    console.log(this.comments);
                 })
         },
         handleScroll(event) {
@@ -142,15 +160,42 @@ export default {
                 return `${diffInDays} дн.назад`;
             }
         },
+        goToEditPost(post) {
+            this.$router.push({
+                name: 'post.create',
+                query: {
+                    post: JSON.stringify(post)
+                }
+            });
+        },
+        deletePost(id) {
+            let confirm = window.confirm('Вы уверены что хотите удалить пост?');
+            if (confirm) {
+                axios.delete(`/post/user/delete/${id}`, { 'id': id })
+                    .then(response => {
+                        this.$emit('delete-post');
+                    })
+            }
+        },
 
     },
     created() {
         this.linkApp = `${import.meta.env.VITE_APP_URL}`;
     },
+    computed: {
+        ...mapGetters('authStore', ['isAuthenticated', 'user']),
+    },
     components: {}
 }
 </script>
 <style scoped>
+.redact {
+    cursor: pointer;
+    font-size: 0.8vw;
+    text-decoration: none;
+    color: #865DF8;
+}
+
 .container_comment {
     display: flex;
     flex-direction: column;
@@ -241,6 +286,7 @@ export default {
 }
 
 .btn_comment {
+    cursor: pointer;
     margin-top: 15px;
     margin-left: 25px;
     margin-right: 5px;
@@ -291,7 +337,6 @@ export default {
 .category_name {
     display: flex;
     justify-content: center;
-    width: 7.24vw;
     margin-top: -0.63vw;
     height: 1.77vw;
     background: #865DF8;
@@ -315,7 +360,6 @@ export default {
 .category_name {
     display: flex;
     justify-content: center;
-    width: 7.24vw;
     margin-top: -0.63vw;
     height: 1.77vw;
     background: #865DF8;
