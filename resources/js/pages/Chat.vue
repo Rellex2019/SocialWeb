@@ -25,7 +25,12 @@
             <div class="container_messages">
                 <textarea class="enter_message" @keydown="handleKeyDown" v-model="inputData"
                     placeholder="Введите сообщение"></textarea>
-                <a @click.prevent="sendMessage"><img :src="linkApp + '/img/orpr.png'" alt="" class="icon_enter"></a>
+                <input type="file" @change="handleFileUpload" ref="fileUpload" name="" id="" style="display: none; align-items: center;">
+
+                <div class="cont">
+                    <img @click="openFileInput" :src="linkApp + '/img/file.svg'" class="file-clip" alt="">
+                    <img @click.prevent="sendMessage" :src="linkApp + '/img/orpr.png'" alt="" class="icon_enter">
+                </div>
             </div>
         </div>
     </div>
@@ -35,11 +40,15 @@
             <div class="container_window" ref="messagesContainer">
 
 
-                <div @scroll="checkReadStatus(message.id)" v-if="allMessages.chat && allMessages.chat.messages" v-for="message in allMessages.chat.messages"
-                    class="" :key="message.id">
+                <div @scroll="checkReadStatus(message.id)" v-if="allMessages.chat && allMessages.chat.messages"
+                    v-for="message in allMessages.chat.messages" class="" :key="message.id">
                     <div v-if="message.user_id && message.user_id != user.id" class="friend_messages">
                         <div class="msg">
                             <div class="msg_content_friend" v-html="message.content"></div>
+
+                            <img v-if="message.file_path" :src="linkApp + '/storage/' + message.file_path"
+                                style="max-width: 29.5vw; max-height: 45vh;  margin-top: 1vw; margin-bottom: 0.5vw;">
+
                             <div class="time">{{ formatDate(message.updated_at) }}</div>
                             <span v-if="message.isRead" class="read-indicator">Прочитано</span>
                         </div>
@@ -48,9 +57,14 @@
                     <div v-if="message.user_id && message.user_id == user.id" class="my_messages">
                         <div class="my_msg">
                             <div class="msg_content_my" v-html="message.content"></div>
+
+                            <img v-if="message.file_path" :src="linkApp + '/storage/' + message.file_path"
+                                style="max-width: 29.5vw; max-height: 45vh; margin-top: 1vw;margin-bottom: 0.5vw;">
+
                             <div class="time_my">{{ formatDate(message.updated_at) }}</div>
                             <span v-if="message.isRead" class="read-indicator">Прочитано</span>
                         </div>
+
                         <button @click="deleteMessage(message.id)" style="margin-top: -5px;">Удалить</button>
                     </div>
                 </div>
@@ -75,6 +89,9 @@ export default {
         }
     },
     methods: {
+        openFileInput() {
+            this.$refs.fileUpload.click();
+        },
         getMessages() {
             axios.get(`/chat/${this.chatId}/messages`)
                 .then(response => {
@@ -149,12 +166,11 @@ export default {
             const minutes = String(date.getMinutes()).padStart(2, '0'); // Получаем минуты и добавляем ведущий ноль
             return `${hours}:${minutes}`; // Возвращаем строку с временем
         },
-        deleteMessage(id)
-        {
+        deleteMessage(id) {
             axios.delete(`/chat/${id}/message/delete`)
-            .then(response=>{
-                console.log(response.data);
-            })
+                .then(response => {
+                    console.log(response.data);
+                })
         }
     },
     mounted() {
@@ -192,6 +208,18 @@ export default {
 }
 </script>
 <style scoped>
+.cont{
+    right: 0px;
+    display: flex;
+
+    width: 15vw;
+}
+.file-clip {
+    cursor: pointer;
+    width: 4vw;
+    margin-left: -8vw;
+}
+
 .bckgr {
     position: relative;
     z-index: -30;
@@ -276,10 +304,9 @@ export default {
 }
 
 .icon_enter {
+    width: 2.4vw;
     cursor: pointer;
     position: absolute;
-    margin-left: -3.65vw;
-    margin-top: 0.52vw;
 }
 
 /* ---------------------------------------------- */
@@ -361,7 +388,7 @@ export default {
 }
 
 .icon_enter {
-    margin-top: 1vw;
+    margin-top: 1.3vw;
     margin-left: -3vw;
 }
 

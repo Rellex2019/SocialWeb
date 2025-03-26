@@ -101,60 +101,86 @@ export default {
     },
     methods: {
         sendDataForRegistration() {
+            // Сбрасываем ошибки перед проверкой
+            this.errors = {};
+
+            // Выполняем все проверки
             this.checkPassword();
+            this.checkAvailability();
+
+            // Проверяем обязательные поля
+            if (!this.dataReg.name.trim()) this.errors.name = ['Поле обязательно для заполнения'];
+            if (!this.dataReg.surname.trim()) this.errors.surname = ['Поле обязательно для заполнения'];
+            if (!this.dataReg.email.trim()) this.errors.email = ['Поле обязательно для заполнения'];
+            if (!this.dataReg.login.trim()) this.errors.login = ['Поле обязательно для заполнения'];
+
+            // Если ошибок нет - отправляем форму
             if (Object.keys(this.errors).length === 0) {
-                axios.post("/signup", this.dataReg).then((response) => {
-                    this.$router.push('/');
-                    this.$store.commit('authStore/setUser', response.data);
-                })
+                axios.post("/signup", this.dataReg)
+                    .then((response) => {
+                        this.$router.push('/');
+                        this.$store.commit('authStore/setUser', response.data);
+                    })
                     .catch(e => {
                         if (e.response && e.response.data.errors) {
-                            this.errors = { ...this.errors,
-                                ...e.response.data.errors};
+                            this.errors = {
+                                ...this.errors,
+                                ...e.response.data.errors
+                            };
                         }
                     });
+            } else {
+                console.log('Ошибки валидации:', this.errors);
             }
-
         },
+
         async checkAvailability() {
             this.isLoadingAvailability = true;
             const loginRegex = /^[a-zA-Z0-9]+$/;
             let loginValidate = loginRegex.test(this.dataReg.login);
-            this.errors.login = null;
-            if (loginValidate) {
-                await axios
-                    .post("/check/login_availability", {
+
+            // Сбрасываем ошибку логина перед проверкой
+            if (this.errors.login) delete this.errors.login;
+
+            if (loginValidate && this.dataReg.login.trim()) {
+                try {
+                    const response = await axios.post("/check/login_availability", {
                         login: this.dataReg.login,
-                    })
-                    .then((response) => {
-                        this.loginAvailable = response.data;
-                    })
-                    .finally(() => {
-                        this.isLoadingAvailability = false;
                     });
-            }
-            else {
+                    this.loginAvailable = response.data;
+                } finally {
+                    this.isLoadingAvailability = false;
+                }
+            } else if (this.dataReg.login.trim()) {
                 this.loginAvailable = false;
                 this.errors.login = ['Логин должен состоять из латинских букв и цифр'];
-                if (this.dataReg.login.length < 1) {
-                    this.errors.login = null;
-                }
+            }
+        },
+
+        checkPassword() {
+            // Сбрасываем ошибки паролей перед проверкой
+            if (this.errors.password) delete this.errors.password;
+            if (this.errors.password_repeat) delete this.errors.password_repeat;
+
+            if (!this.dataReg.password.trim()) {
+                this.errors.password = ['Введите пароль'];
+            } else if (this.dataReg.password.length < 8) {
+                this.errors.password = ['Пароль должен быть не менее 8 символов'];
             }
 
-        },
-        checkPassword() {
-            this.errors.password_repeat = null;
-            this.errors.password = null;
-            if(this.dataReg.password_repeat.length<1){
-                this.errors.password_repeat = ['Поля паролей не должны быть пустыми'];
-            }
-            else if (this.dataReg.password != this.dataReg.password_repeat) {
-                this.errors.password_repeat = ['Повтор пароля должен совпадать с паролем'];
+            if (!this.dataReg.password_repeat.trim()) {
+                this.errors.password_repeat = ['Повторите пароль'];
+            } else if (this.dataReg.password !== this.dataReg.password_repeat) {
+                this.errors.password_repeat = ['Пароли не совпадают'];
             }
         },
+
         checkErrors(e) {
-            let field = e.target.name;
-            this.errors[field] = null;
+            const field = e.target.name;
+            // Удаляем ошибку только если поле не пустое
+            if (this.dataReg[field].trim() && this.errors[field]) {
+                delete this.errors[field];
+            }
         }
     },
     created() {

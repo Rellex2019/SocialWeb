@@ -9,7 +9,7 @@
 
         <div class="form-container">
 
-            <form @submit.prevent="Object.keys(localPost).length > 0 ? changePost(localPost.id) : createPost">
+            <form @submit.prevent="handleSubmit">
                 <label for="postText">Заголовок</label>
                 <input v-model="fields.title" class="texr-2" id="postText" name="postText" placeholder="Заголовок"
                     required />
@@ -57,7 +57,7 @@ export default {
                 imageFile: null,
             },
             categories: [],
-            localPost: [],
+            localPost: {},
         }
     },
     props: {
@@ -76,6 +76,13 @@ export default {
         SideMenu
     },
     methods: {
+        handleSubmit() {
+            if (this.isEditMode) {
+                this.changePost(this.localPost.id);
+            } else {
+                this.createPost();
+            }
+        },
         openFileInput() {
             this.$refs.imageUpload.click();
         },
@@ -125,7 +132,7 @@ export default {
         },
         initialField() {
             this.localPost = [];
-            this.fields = [];
+            this.fields = {};
             if (this.post) {
                 this.localPost = (JSON.parse(this.post));
                 this.fields = { ...this.localPost };
@@ -158,6 +165,9 @@ export default {
     },
     computed: {
         ...mapGetters('authStore', ['isAuthenticated', 'user']),
+        isEditMode() {
+            return this.localPost?.id; 
+        }
     },
     mounted() {
         this.initialField();
