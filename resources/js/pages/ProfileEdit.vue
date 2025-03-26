@@ -1,10 +1,17 @@
 <template>
     <SideMenu></SideMenu>
     <div class="content" id="content">
-        <div class="name_cart">
-            <p>Мой профиль</p>
+
+        <div class="container">
+            <div class="block1">
+                <div @click="$router.go(-1)"><img class="back_arrow" :src="linkApp + '/img/profile_img/back_arrow.png'">
+                </div>
+                <RouterLink to="/"><img :src="linkApp + '/img/welcome_img/logo.png'" alt="" class="logo"></RouterLink>
+            </div>
         </div>
-        <a href=""><img class="menu_mob" :src="linkApp + '/img/icons/menu_mob.png'" alt=""></a>
+
+
+
 
         <div class="form-container">
 
@@ -21,23 +28,27 @@
             </div>
             <form @submit.prevent="submitForm">
                 <input v-model="fields.nameUser" class="in_name_category" id="postText" name="postText"
-                    placeholder="Имя" required></input>
+                    placeholder="Имя" required style="margin-bottom: 1.5vw; margin-top: 2vw;"></input>
                 <input v-model="fields.surnameUser" class="in_name_category" id="postText" name="postText"
                     placeholder="Фамилия" required></input>
 
                 <label for="postText">Цитата</label> <br>
                 <textarea v-model="fields.quote" id="postText" name="postText" placeholder=""></textarea>
-                <button class="but_post" type="submit">Сохранить</button>
+                <button class="btn_save_cont" type="submit">Сохранить</button>
             </form>
             <label for="postText">Логин</label>
             <form @submit.prevent="updateLogin">
-                <div style="display: flex; align-items: center;"><input class="in_name_category" id="postText"
-                        style="display: flex; align-items: center;" name="postText" v-model="inputLogin"
-                        @input="checkAvailability" placeholder="Введите новый логин">
-                    </input>
-                    <div class="avaible" v-if="loginAvailability && inputLogin.length != 0">свободен</div>
-                    <div class="avaible notavaible" v-if="!loginAvailability && inputLogin.length != 0">занят</div>
-                    <button type="submit" class="button_succes">Подтвердить</button>
+                <div>
+                    <div style="display: flex; align-items: center;">
+                        <input class="in_name_category" id="postText" name="postText" v-model="inputLogin"
+                            @input="checkAvailability" placeholder="Введите новый логин" />
+                        <div class="avaible" v-if="loginAvailability && inputLogin.length != 0"> Логин свободен</div>
+                        <div class="avaible notavaible" v-if="!loginAvailability && inputLogin.length != 0">Логин занят
+                        </div>
+                    </div>
+
+
+                    <button type="submit" class="btn_save_cont" style="margin-top: 1vw;">Подтвердить</button>
                 </div>
             </form>
             <div v-if="loginError" style="color: red;" class="">{{ loginError }}</div>
@@ -50,26 +61,44 @@
             <div style="display: flex; align-items: center;"><input @input="handleChangePassword"
                     class="in_name_category" id="postText" name="postText" v-model="passwordNew"
                     placeholder="Введите новый пароль" required>
-                <button @click="updatePassword" class="button_succes">Сменить</button></input>
+
             </div>
+            <button @click="updatePassword" class="btn_save_cont" style="margin-top: 1vw;">Сменить</button></input>
             <div v-if="PasswordError" style="color: red;" class="">{{ PasswordError }}</div>
             <div v-if="PasswordSucces" style="color: green;" class="">{{ PasswordSucces }}</div>
-            <label for="postText">Выбор категорий</label>
-            <div 
-            v-for="category in categories" 
-            :key="category.id" 
-            :class="['category', { selected: selectedCategories.includes(category.id)}]"
-            @click="toggleCategory(category.id)"
-        >
-            {{ category.name }}
-        </div>
-        <button @click="updateCategories" class="button_succes">Сохранить категории</button>
+
+
+
+            <button @click="isModal = true"  class="btn_save_cont btn-category" style="margin-top: 3vw;">Выбрать категории</button>
+
 
 
             <button @click="deleteAccount" class="but_post" style="background-color: red;">Удалить аккаунт</button>
 
         </div>
     </div>
+
+
+
+    <div class="setup-complete-container" v-if="isModal">
+        <div class="window">
+            <div>Выберите интересущиюе вас категории</div>
+            <input type="searсh" v-model="searchQuery" placeholder="Введите название категории"
+                @input="filterCategories" class="input_text">
+            <div class="container_categories">
+                <div class="category" :key="category.id" v-for="category in filteredCategories"
+                    :class="[{ selected: selectedCategories.includes(category.id) }]"
+                    @click="toggleCategory(category.id)">{{ category.name }}</div>
+            </div>
+            <div style="width: 100%; display: flex; justify-content: space-between; align-items: end;">
+                <button class="btn_save" @click="isModal = false">Нет, спасибо</button>
+                <button @click="updateCategories" class="btn_save2">Сохранить</button>
+            </div>
+
+        </div>
+    </div>
+
+
 </template>
 <script>
 import { mapGetters } from 'vuex/dist/vuex.cjs.js';
@@ -109,7 +138,10 @@ export default {
 
 
             categories: [],
-            selectedCategories: []
+            filteredCategories: [],
+            selectedCategories: [],
+            searchQuery: '',
+            isModal: false,
         }
     },
     methods: {
@@ -202,7 +234,10 @@ export default {
                 },
             })
                 .then(response => {
-                    console.log(response.data);
+                    if(response.data && response.data.avatarPath){
+                        this.$store.commit('authStore/updateAvatar', response.data.avatarPath);
+
+                    }
                 })
                 .catch(error => {
                     console.error(error.response.data);
@@ -223,19 +258,16 @@ export default {
         getCategories() {
             axios.get('/get/categories').then(response => {
                 this.categories = response.data;
+                this.filteredCategories = response.data;
             })
-                .catch((error) => {
-                    this.categories = error.response;
-                })
         },
-        getSelectedCategory()
-        {
+        getSelectedCategory() {
             axios.get('/user/category')
-            .then(response=>{
-                this.selectedCategories = response.data.map(category=>{
-                    return category.id
-                });
-            })
+                .then(response => {
+                    this.selectedCategories = response.data.map(category => {
+                        return category.id
+                    });
+                })
         },
         toggleCategory(id) {
 
@@ -247,12 +279,17 @@ export default {
                 this.selectedCategories.splice(index, 1);
             }
         },
-        updateCategories()
-        {
-            axios.patch('/user/category/change', {'ids': this.selectedCategories})
-            .then(response =>{
-            })
-        }
+        updateCategories() {
+            axios.patch('/user/category/change', { 'ids': this.selectedCategories })
+                .then(response => {
+                })
+        },
+        filterCategories() {
+            const query = this.searchQuery.toLowerCase();
+            this.filteredCategories = this.categories.filter(category =>
+                category.name.toLowerCase().includes(query)
+            );
+        },
     },
     mounted() {
         this.getCategories();
@@ -271,187 +308,93 @@ export default {
 }
 </script>
 <style scoped>
-.categories {
+.selected {
+    color: #F4F4F4;
+    background-color: #865DF8;
+}
+
+.btn_save {
+    cursor: pointer;
+    margin-left: 0.5vw;
+    padding: 1vw 2vw;
+    color: #865df8;
+}
+
+.btn_save2 {
+    cursor: pointer;
+    margin-right: 0.5vw;
+    border-radius: 0.7vw;
+    padding: 1vw 2vw;
+    color: #f2edfe;
+    background-color: #865df8;
+}
+
+.input_text {
+    font-size: 0.8vw;
+    cursor: pointer;
+    width: 30vw;
+    padding: 0.4vw 1vw;
+    border-radius: 2vw;
+    border: 1px solid #865DF8;
+}
+
+.container_categories {
+
+    flex-wrap: wrap;
     display: flex;
-    flex-direction: column;
+    gap: 2vw;
 }
 
 .category {
-    padding: 10px;
-    margin: 5px;
-    border: 1px solid #865DF8;
-    border-radius: 5px;
+    font-size: 0.9vw;
     cursor: pointer;
-    transition: background-color 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5vw 1vw;
+    border-radius: 2vw;
+    border: 1px solid #865DF8;
 }
 
-.category.selected {
-    background-color: #865DF8;
-    color: white;
+.setup-complete-container {
+    position: fixed;
+    display: flex;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.2);
 }
-body {
-    margin: 0;
-    font-family: "Unbounded", serif;
-    transition: background-color 0.3s ease;
+
+.window {
+    padding: 1.2vw 1vw;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 1vw;
+    width: 40vw;
+    background-color: #f2edfe;
+    border-radius: 1.5vw;
 }
+
 
 .avaible {
-    padding: 0px 20px 0px 20px;
-    margin-top: 15px;
-    border-radius: 25px;
-    background-color: green;
+    margin-left: 1vw;
+    text-wrap: nowrap;
+    color: green;
 }
 
 .notavaible {
-    background-color: rgb(159, 28, 28);
-}
-
-.container {
-    display: flex;
-}
-
-h1,
-h2,
-h3,
-p,
-a {
-    font-family: "Unbounded", serif;
-
-}
-
-.content {
-    margin-left: 23.44vw;
-    padding: 1.04vw;
-}
-
-.sidebar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 18.23vw;
-    height: 100%;
-    background-color: #865DF8;
-    padding: 1.04vw;
-    border-radius: 0vw 1.56vw 0vw 1.56vw;
-    box-shadow: 0.10vw 0 0.26vw rgba(0, 0, 0, 0.1);
-}
-
-.sidebar a {
-    display: block;
-    padding: 0.52vw 0;
-    color: #ffffff;
-    text-decoration: none;
-}
-
-.avatar_block_nav {
-    width: 11.20vw;
-    height: 11.20vw;
-}
-
-.links_nav {
-    margin-top: 3.65vw;
-}
-
-.logo {
-    width: 11.20vw;
-    height: 1.51vw;
-    margin-bottom: 4.17vw;
-    margin-top: -1.60vw;
-
-}
-
-.links_page,
-.exit_link_nav {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    margin-bottom: 1.77vw;
-    margin-left: 2.60vw;
-}
-
-.icon_link {
-    padding-right: 1.41vw;
-    width: 1.82vw;
-    height: 1.72vw;
-}
-
-.name_link,
-.exit_link {
-    width: 9.22vw;
-    font-weight: 400;
-    font-size: 1.04vw;
-    line-height: 1.30vw;
-    color: #FFFFFF;
-}
-
-.exit_link_nav {
-    margin-top: 7.21vw;
-}
-
-
-
-.bckgr {
-    position: relative;
-    z-index: -30;
-}
-
-.backgr_main {
-    /* position: absolute; */
-    position: fixed;
-    margin-left: 13.02vw;
-    margin-top: -10.42vw;
-    width: 51.72vw;
-    height: 51.04vw;
-}
-
-.bckgr2 {
-    position: relative;
-    z-index: -30;
-}
-
-.backgr_main2 {
-    /* position: absolute; */
-    position: fixed;
-
-    margin-top: 31.25vw;
-    width: 51.72vw;
-    height: 51.04vw;
-}
-
-
-.name_cart {
-    margin-left: 59.90vw;
-    margin-bottom: 2.60vw;
-    margin-top: 2.08vw;
-    display: flex;
-    justify-content: center;
-    width: 10.42vw;
-    height: 2.08vw;
-    background: #865DF8;
-    border-radius: 1.56vw;
-    font-weight: 300;
-    font-size: 1.04vw;
-    line-height: 1.30vw;
-    color: #FFFFFF;
-    align-items: center;
-
-}
-
-.name_cart p {
-    padding: 0.52vw 0.26vw;
-}
-
-body {
-    font-family: 'Unbounded';
+    color: red;
 }
 
 .form-container {
-
     padding: 1.04vw;
     border-radius: 0.26vw;
-
     max-width: 26.04vw;
-
 }
 
 h2 {
@@ -460,7 +403,8 @@ h2 {
 }
 
 label {
-    margin-top: 1.04vw;
+    margin-top: 1.5vw;
+    margin-bottom: 0.7vw;
     display: block;
 
 
@@ -476,12 +420,17 @@ textarea {
     height: 9.64vw;
 
     background: #F3EFFE;
-    border-radius: 1.56vw;
-
+    border-radius: 0.52vw;
     margin-bottom: 0.78vw;
-    padding: 1.04vw;
+    border: none;
+    padding: 0.52vw;
     font-size: 1.04vw;
     border: none;
+    border: 0.05vw solid #C68DFE;
+    color: #F4F4F4;
+    background: rgba(198, 141, 254, 0.26);
+    border-radius: 0.52vw;
+
 }
 
 select {
@@ -517,7 +466,6 @@ option {
 }
 
 .option-item {
-
     padding: 0.52vw;
     cursor: pointer;
     color: black;
@@ -532,16 +480,17 @@ option {
 }
 
 .upload-btn {
-    background: none;
-
     border: none;
     cursor: pointer;
     border-radius: 5.21vw;
+    background: none;
 }
 
 .but_post {
     width: 19.38vw;
     height: 2.86vw;
+
+
     background: #865DF8;
     border-radius: 1.56vw;
     font-size: 1.04vw;
@@ -553,173 +502,368 @@ option {
     margin-top: 2.60vw;
 }
 
-.button_succes {
-    margin-left: 40px;
-    margin-top: 1vw;
-    padding: 0px 10px 0px 10px;
-    height: 2vw;
-    background: #865DF8;
-    border-radius: 1.56vw;
-    font-size: 1.04vw;
-    color: white;
-    border: none;
-    cursor: pointer;
-    font-family: 'Unbounded';
-}
-
 .but_post:hover {
     background-color: #754ce6;
 }
 
 .in_name_category {
-    margin-top: 1.56vw;
-    width: 31.25vw;
-    height: 1.56vw;
-    background: #F3EFFE;
-    border-radius: 1.56vw;
-    margin-bottom: 0.78vw;
+    flex: none;
     padding: 0.52vw;
     font-size: 1.04vw;
     border: none;
+    border: 0.05vw solid #C68DFE;
+    color: #F4F4F4;
+
+    width: 26.15vw;
+    background: rgba(198, 141, 254, 0.26);
+    border-radius: 0.52vw;
+
+
 }
+
+.in_name_category::placeholder {
+    font-weight: 300;
+    font-size: 1.04vw;
+    line-height: 1.30vw;
+    color: #c4c4c4;
+}
+
+
+
 
 .pr_edit {
-    width: 8.33vw;
-    height: 8.33vw;
+    width: 7.8vw;
+    height: 7.8vw;
+    border-radius: 3.9vw;
     border: none;
-    border-radius: 5.21vw;
+    /* border-radius: 100px; */
+    background-color: #181C22;
 }
 
 
+.main_title {
+    width: 8.75vw;
+    height: 2.08vw;
+    font-weight: 400;
+    font-size: 1.67vw;
+    line-height: 2.08vw;
+    color: #C68DFE;
+}
+
+.block1 {
+    margin-top: 2vw;
+    margin-bottom: 1.5vw;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.logo {
+    width: 8.49vw;
+    height: 1.56vw;
+}
+
+.bckgr {
+    position: relative;
+    z-index: -30;
+}
+
+.backgr_main {
+    /* position: absolute; */
+    position: fixed;
+    margin-left: 41.67vw;
+    margin-top: 15.63vw;
+    width: 51.72vw;
+    height: 51.04vw;
+}
 
 
-.menu_mob {
+.navbar,
+.add_post {
     display: none;
 }
 
-@media (max-width:320px) {
-    .menu_mob {
-        display: block;
-    }
 
-    .content {
-        margin-left: 0.05vw;
-    }
+.btn_save_cont {
+    background-color: #C68DFE;
+    border-radius: 1.30vw;
+    color: #FFFFFF;
 
+    font-size: 1.3vw;
+    padding: 0.3vw 1vw;
+
+}
+
+.btn-category{
+    background-color: #FFFFFF;
+    color: #C68DFE;
+}
+
+.back_arrow {
+    width: 1.20vw;
+    height: 1.98vw;
+}
+
+/* -----------------------------------media----------------------------- */
+@media ((min-width: 320px) and (max-width: 766px)) {
     .sidebar {
         display: none;
     }
 
-    .popup {
-        display: none;
+    .content {
+        margin-left: -1vw;
+
     }
 
-    .block5 {
-        display: none;
-    }
-
-    .menu_mob {
+    .avatar_mobile {
         display: block;
-        width: 13vw;
-        height: 5vw;
-        margin-top: -6vw;
-        margin-left: 1vw;
-
-
+        width: 10.63vw;
+        height: 10.63vw;
     }
 
-    .name_cart {
-        margin-left: 65vw;
-        width: 30.25vw;
-        height: 4.25vw;
-        background: #865DF8;
-        border-radius: 5vw;
-        font-weight: 300;
-        font-size: 3vw;
-        line-height: 1.30vw;
-        color: #FFFFFF;
+    .block1 {
+        display: flex;
         align-items: center;
-
     }
 
-    .file-input {
-        margin-bottom: 0.78vw;
+    .main_title {
+        font-weight: 400;
+        font-size: 4.69vw;
+        line-height: 5.94vw;
+        color: #C68DFE;
+        width: 35vw;
     }
 
-    .upload-btn {
-        margin-left: 35vw;
-        background: none;
-        border: none;
-        cursor: pointer;
-
+    .add_post {
+        display: block;
+        width: 10.63vw;
+        height: 10.63vw;
     }
 
-    .but_post {
-        width: 19.38vw;
-        height: 2.86vw;
+    .logo,
+    .friends {
+        display: none;
+    }
+
+    .navbar {
+        display: block;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        background-color: #181C22;
+        position: fixed;
+        bottom: 0;
+        width: 100%;
+        height: 18.75vw;
+        border-top: 0.31vw solid #C68DFE;
+    }
 
 
-        background: #865DF8;
-        border-radius: 1.56vw;
-        font-size: 1.04vw;
+
+    .nav-item img {
+        width: 9.38vw;
+        height: 9.38vw;
+    }
+
+    .nav-item {
         color: white;
-        padding: 0.52vw;
-        border: none;
-        cursor: pointer;
-        font-family: 'Unbounded';
-        margin-top: 2.60vw;
+        text-align: center;
+        text-decoration: none;
+        transition: opacity 0.3s;
     }
 
-    .but_post:hover {
-        background-color: #754ce6;
+    .nav-item:hover {
+        opacity: 0.7;
     }
 
-    textarea {
-        width: 92vw;
-        height: 20vw;
-
-        background: #F3EFFE;
-        border-radius: 1.56vw;
-
-        margin-bottom: 0.78vw;
-        padding: 1.04vw;
-        font-size: 3vw;
-        border: none;
-    }
-
-    .in_name_category {
-        margin-top: 1vw;
-        width: 92vw;
-        height: 3vw;
-        background: #F3EFFE;
-        border-radius: 4vw;
-        margin-bottom: 4vw;
-        padding: 2vw;
-        font-size: 3vw;
-        border: none;
-    }
-
-    label {
-        font-size: 3vw;
+    .back_arrow {
+        width: 4.20vw;
+        height: 6.98vw;
     }
 
     .pr_edit {
-        width: 20.31vw;
-        height: 20.31vw;
+        width: 28.44vw;
+        height: 28.44vw;
+    }
+
+    .in_name_category {
+        padding: 1.52vw;
+        font-size: 3.04vw;
         border: none;
-        border-radius: 30vw;
+        border: 0.05vw solid #C68DFE;
+        color: #F4F4F4;
+        width: 87.50vw;
+        background: rgba(198, 141, 254, 0.26);
+        border-radius: 1.52vw;
     }
 
-    .form-container {
-        margin-top: 10vw;
-        padding: 1.04vw;
-        border-radius: 0.26vw;
+    .in_name_category::placeholder {
 
+        font-size: 3.04vw;
+    }
 
+    textarea {
+        width: 87.50vw;
+        border-radius: 1.52vw;
+        font-size: 3.04vw;
 
+    }
+
+    label {
+        margin-top: 4.04vw;
+        display: block;
+        font-style: normal;
+        font-weight: 400;
+        font-size: 3.04vw;
+        line-height: 1.30vw;
+        color: #865DF8;
+        margin-bottom: 1.56vw;
+    }
+
+    .but_post {
+        width: 90.63vw;
+        height: 9.38vw;
+        background: #C68DFE;
+        border-radius: 3.13vw;
+        font-weight: 300;
+        font-size: 3.44vw;
+        line-height: 5.94vw;
+        color: #FFFFFF;
+        margin-top: 6.25vw;
+    }
+
+    .btn_save_cont {
+        background-color: #C68DFE;
+        border-radius: 1.30vw;
+        color: #FFFFFF;
+        width: 30px;
+        font-size: 3.3vw;
+        padding: 0.3vw 1vw;
+        margin-bottom: 6vw;
     }
 
 
 
+}
+
+
+
+
+
+
+
+
+* {
+    font-family: "Unbounded", serif;
+    font-optical-sizing: auto;
+    color: black;
+    text-decoration: none;
+    margin: 0;
+    padding: 0;
+}
+
+
+body {
+    overflow-x: hidden;
+    background-color: #181C22;
+}
+
+.container {
+    padding-left: 2.8vw;
+    padding-right: 3.91vw;
+}
+
+/* -------------------------------------------------------------------------- */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 20.83vw;
+    height: 100%;
+    background-color: #181C22;
+    padding: 1.04vw;
+    box-shadow: 0.10vw 0 0.26vw rgba(0, 0, 0, 0.1);
+}
+
+.sidebar a {
+    display: block;
+    padding: 0.52vw 0;
+    color: #ffffff;
+    text-decoration: none;
+}
+
+.sidebar a:hover {
+    /* background-color: #ddd; */
+}
+
+.content {
+    margin-left: 20.83vw;
+    padding: 1.04vw;
+}
+
+.avatar_block {
+    width: 17.50vw;
+    height: 16.46vw;
+    background: #22232F;
+    border-radius: 0.52vw;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.name_user_nav {
+    margin-top: 1.35vw;
+    width: 11.56vw;
+    font-weight: 500;
+    font-size: 1.04vw;
+    line-height: 1.30vw;
+    color: #FFFFFF;
+}
+
+.avatar_block_nav {
+    width: 11.20vw;
+    height: 11.20vw;
+}
+
+.links_nav {
+    margin-top: 3.65vw;
+}
+
+.links_page,
+.exit_link_nav {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 1.77vw;
+}
+
+.icon_link {
+    padding-right: 1.41vw;
+    width: 1.82vw;
+    height: 1.72vw;
+}
+
+.name_link,
+.exit_link {
+    width: 9.22vw;
+    font-weight: 400;
+    font-size: 1.04vw;
+    line-height: 1.30vw;
+    color: #FFFFFF;
+}
+
+.exit_link_nav {
+    margin-top: 7.21vw;
+}
+
+@media ((min-width: 320px) and (max-width: 766px)) {
+    .sidebar {
+        display: none;
+    }
+
+    .content {
+        margin-left: -1vw;
+    }
 }
 </style>

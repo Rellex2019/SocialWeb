@@ -1,49 +1,45 @@
 <template>
-
     <SideMenu />
     <div class="content" id="content">
-
-
-        <div class="name_cart">
-            <p>Мои чаты</p>
+        <div class="container">
+            <div class="block1">
+                <a href="/profile.html" style="display: none;"><img :src="linkApp + '/img/welcome_img/avatar_account.png'" class="avatar_mobile"  alt=""></a>
+                
+                <h1 class="main_title">Сообщения</h1>
+                <a href="/welcome.html"><img :src="linkApp + '/img/welcome_img/logo.png'" alt="" class="logo"></a>
+                <a href="#" style="display: none;"><img :src="linkApp + '/img/welcome_img/add_post_icon.png'" alt="" class="add_post" ></a>
+            </div>
         </div>
-        <a href=""><img class="menu_mob" :src="linkApp + '/img/icons/menu_mob.png'" alt=""></a>
-        <div class="bckgr">
-            <img :src="linkApp + '/img/back.png'" alt="" class="backgr_main">
-        </div>
-        <div class="bckgr2">
-            <img :src="linkApp + '/img/back2.png'" alt="" class="backgr_main2">
-        </div>
-        <div class="wrapper">
 
-
-            <div v-if="Object.keys(chats).length>0" @click="openChat(chat.chat.id)" v-for="chat in chats.chats" :key="chat.id" class="chat">
-                <div class="name_chat">
-                    <div  style="display: flex; align-items: center;" class="">
-                        <img class="img_avatar" v-if="chat.friend && chat.friend.avatar"
-                            :src="linkApp + '/storage/' + chat.friend.avatar" alt="">
-                        <img  class="img_avatar" v-else :src="linkApp + '/img/img_acc.jpg'" alt="">
-                        <div class="chats">
-                            <p class="name_chat_f">{{ chat.friend.name+' '+chat.friend.surname }}</p>
-                            <p style="margin-top: 15px;" class="text_chat" v-if="chat.last_message">{{
-                                chat.last_message.content }}</p>
-                            <p style="margin-top: 15px;" class="text_chat" v-else="chat.last_message">Этот чатик пустой
-                            </p>
+        <div class="container">
+            <div class="wrapper">
+                <div class="chat">
+                    <div v-if="Object.keys(chats).length>0" @click="openChat(chat.chat.id)" v-for="chat in chats.chats" :key="chat.id">
+                        <div class="name_chat">
+                            <div style="display: flex; align-items: center;">
+                                <img class="img_avatar" v-if="chat.friend && chat.friend.avatar"
+                                    :src="linkApp + '/storage/' + chat.friend.avatar" alt="">
+                                <img class="img_avatar" v-else :src="linkApp + '/img/img_acc.jpg'" alt="">
+                                <div class="chats">
+                                    <p class="name_chat_f" v-if="chat.friend" style="margin-left: 1vw;">{{ chat.friend.name+' '+chat.friend.surname }}</p>
+                                    <p class="text_chat" v-html="chat.last_message.content.replace(/<br\s*\/?>/gi, ' ')" v-if="chat.last_message" style="margin-left: 1vw;"></p>
+                                    <p class="text_chat" v-else>Этот чатик пустой</p>
+                                </div>
+                            </div>
+                            <img class="img_chat" :src="linkApp + '/img/chats_img/unread.png'" alt="">
                         </div>
+                        <hr class="palka">
                     </div>
-                    <img class="img_chat" @click="openChat(chat.chat.id)" :src="linkApp + '/img/icons/chat.png'" alt="">
+                    <div v-else class="nothink">
+                        <p>У вас нет активных чатов :(</p>
+                        <p>Сперва создайте чат, нажав на значёк сообщения рядом с другом</p>
+                    </div>
                 </div>
-
-            </div>
-            <div v-else class="nothink">
-                <p>У вас нет активных чатов :(</p>
-                <p>Сперва создайте чат, нажав на значёк сообщения рядом с другом</p>
-
             </div>
         </div>
-
     </div>
 </template>
+
 <script>
 import SideMenu from '../components/sideMenu.vue';
 
@@ -66,7 +62,6 @@ export default {
                 })
         },
         async openChat(chatId) {
-
             this.$router.push(`/chat/${chatId}`)
         },
     },
@@ -76,328 +71,277 @@ export default {
     created() {
         this.linkApp = `${import.meta.env.VITE_APP_URL}`;
     },
-
 }
 </script>
+
 <style scoped>
-.nothink{
-    text-align: center;
-    font-size: 24px;
-}
-.name_chat {
-    width: 56vw;
+.block1{
+    margin-top: 2.08vw;
     display: flex;
-    margin-bottom: 0.78vw;
-    height: 7.19vw;
-    background: #F6F3FF;
-    border-radius: 1.56vw;
+    flex-direction: row;
     justify-content: space-between;
 }
-
-.name_chat_f {
-    font-size: 1.25vw;
-    line-height: 1.56vw;
-    color: #865DF8;
+.logo{
+    width: 8.49vw;
+    height: 1.56vw;
+}
+.main_title{
+    font-weight: 400;
+    font-size: 1.67vw;
+    line-height: 2.08vw;
+    color: #C68DFE;
+}
+/* ----------------------------------chat-----------------------------     */
+.name_chat{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 62.60vw;
+    height: 5.63vw;
+    border-radius: 1.56vw;
+    margin-top: 1.04vw;
 }
 
-.text_chat {
+.name_chat_f{
+    font-size: 1.04vw;
+    line-height: 1.56vw;
+    color: #ffff;
+    margin-left: -26.04vw;
+}
+.text_chat{
     overflow: hidden;
-    width: 42.1vw;
-    font-family: 'Unbounded';
-    font-style: normal;
+    text-overflow: ellipsis;
+    text-wrap: nowrap;
+    width: 30.10vw;
     font-weight: 400;
     font-size: 0.83vw;
     line-height: 1.04vw;
-    color: rgba(134, 93, 248, 0.47);
-    word-break: break-all;
-    text-overflow: ellipsis;
-    text-wrap: nowrap;
+    color: rgba(255, 255, 255, 0.52);
+    margin-left: -26.04vw;
 }
+.palka{
+    margin-top: 0.31vw;
+    position: absolute;
+    width: 70.10vw;
+    border: 0.05vw solid rgba(255, 255, 255, 0.1);
+} 
 
-.img_chat {
-    cursor: pointer;
-    margin-top: 1.56vw;
-    width: 3.44vw;
-    height: 3.44vw;
+.img_chat{
+    width: 0.42vw;
+    height: 0.42vw;
 }
-
-.img_avatar {
-    border-radius: 2.5vw;
-    width: 5.36vw;
-    height: 5.36vw;
-    margin-top: 0.78vw;
-    margin-left: 1.04vw;
+.img_avatar{
+    width: 4.69vw;
+    height: 4.69vw;
+    border-radius: 2.4vw;
 }
-
-.chats {
-    margin-left: 1.04vw;
-    margin-top: 0.52vw;
+.chats{
+    display: flex;
+    flex-direction: column;
+    gap: 1.04vw;
 }
-
-.text_chat {
+.text_chat{
     margin-top: -0.52vw;
 }
-
-a {
+a{
     text-decoration: none;
 }
-
-
-
-
-
-.menu_mob {
-    display: none;
+.content{
+    padding: 1.04vw;
+    margin-left: 20.83vw;
 }
-
-@media (max-width:320px) {
-    .content {
-        margin-left: 0.05vw;
+/* -----------------------------------media----------------------------- */
+@media ((min-width: 320px) and (max-width: 766px)){
+    .sidebar{
+        display: none;
     }
-
-    .menu_mob {
+    .content{
+        margin-left: -1vw;
+    
+    }
+    .avatar_mobile{
         display: block;
+        width: 10.63vw;
+        height: 10.63vw;
     }
-
-    .sidebar {
-        display: none;
-    }
-
-    .popup {
-        display: none;
-    }
-
-    .block5 {
-        display: none;
-    }
-
-    .menu_mob {
-        display: block;
-        width: 13vw;
-        height: 5vw;
-        margin-top: -6vw;
-        margin-left: 1vw;
-
-
-    }
-
-    .name_cart {
-        margin-left: 67vw;
-        width: 30.25vw;
-        height: 4.25vw;
-        background: #865DF8;
-        border-radius: 5vw;
-        font-weight: 300;
-        font-size: 3vw;
-        line-height: 1.30vw;
-        color: #FFFFFF;
-        align-items: center;
-
-    }
-
-
-    .name_chat {
+    .block1{
 
         display: flex;
-        margin-bottom: 5vw;
-        width: 56.35vw;
-        height: 7.19vw;
-        background: none;
-        border-radius: 1.56vw;
+        align-items: center;
     }
-
-    .name_chat_f {
-        width: 80vw;
-        font-size: 3vw;
-        line-height: 1vw;
-        color: #865DF8;
-    }
-
-    .text_chat {
-
-        width: 72vw;
-        height: 0.78vw;
-        font-family: 'Unbounded';
-        font-style: normal;
+    .main_title{
         font-weight: 400;
-        font-size: 2vw;
-        line-height: 1.04vw;
-        color: rgba(134, 93, 248, 0.47);
+        font-size: 4.69vw;
+        line-height: 5.94vw;
+        color: #C68DFE;
+        margin-left: -15vw;
+    }
+    .add_post{
+        display: block;
+        width: 10.63vw;
+        height: 10.63vw;
+    }
+    .logo,.block2,.friends{
+        display: none;
+    }
+    
+    .navbar {
+        display: block;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        background-color: #181C22;
+        position: fixed;
+        bottom: 0;
+        width: 100%;
+        height: 18.75vw;
+        border-top: 0.31vw solid #C68DFE;
+    }
+    
+    .nav-item img {
+        width: 9.38vw;
+        height: 9.38vw;
+    }
+    
+    .nav-item {
+        color: white;
+        text-align: center;
+        text-decoration: none;
+        transition: opacity 0.3s;
+    }
+    
+    .nav-item:hover {
+        opacity: 0.7;
+    }
+    
+    .custom-select{
+        width: 57.50vw;
+        background: #C68DFE;
+        border-radius: 6.25vw;
+        font-weight: 300;
+        font-size: 3.75vw;
+        line-height: 4.69vw;
+        color: #FFFFFF;
+        padding: 1.47vw 1.09vw;
+    }
+    .arrow-icon{
+        width: 4.69vw;
+        height: 2.19vw;
+        margin-left: 51.56vw;
+        margin-top: 3.13vw;
+    }
+    .option-list {
+        width: 56.25vw;
+        display: none;
+        position: absolute;
+        background-color: #F4F4F4;
+        border: 0.05vw solid #ccc;
+        border-radius: 1.30vw;
+        z-index: 1000;
+        font-size: 3.04vw;
+        padding: 2.04vw;
+    }
+    .option-item{
+        padding: 1.5vw;
+    }
+    
+    .avatar_account{
+        width: 13.13vw;
+        height: 13.13vw;
+    }
+    
+    .category_post{
+        width: 25.63vw;
+        height: 5.63vw;
+        background: #C68DFE;
+        border-radius: 9.38vw;
+        font-weight: 300;
+        font-size: 11px;
+        line-height: 4.38vw;
+        color: #FFFFFF;
+    }
+    .name_account{
+        font-size: 3.75vw;
+    }
+    .post_account {
+        gap: 3.57vw;
+    }
+    .post_img {
+        width: 93.75vw;
+        height: 51.56vw;
+    }
+    .description{
+        width: 93.75vw;
+        font-weight: 300;
+        font-size: 3.44vw;
+        line-height: 4.38vw;
+        color: #FFFFFF;
+    }
+    .block4 {
+        gap: 3.72vw;
+    }
+
+    .img_avatar{
+        width: 13.13vw;
+        height: 13.13vw;
+    }
+    .name_chat{
+        margin-top: 14.04vw;
+        width: 62.60vw;
+        height: 5.63vw;
+    }
+    .name_chat_f{
+        font-weight: 400;
+        font-size: 3.44vw;
+        line-height: 5vw;
+        color: #FFFFFF;
+        margin-left: 4.06vw;
+    }
+    .text_chat{
+        width: 42.19vw;
+        font-weight: 400;
+        font-size: 3.13vw;
+        line-height: 4.38vw;
+        color: rgba(255, 255, 255, 0.62);
+        margin-left: 4.06vw;
+    }
+
+    .palka {
+        margin-top: 7.31vw;
+        width: 90.10vw;
     }
 
     .img_chat {
-        margin-left: -5vw;
-        margin-top: 1.56vw;
-        width: 7vw;
-        height: 7vw;
+        margin-top: 1.04vw;
+        width: 1vw;
+        height: 1vw;
+        margin-left:25vw;
     }
-
-    .img_avatar {
-
-        width: 10vw;
-        height: 10vw;
-        margin-top: 0.78vw;
-        margin-left: 1.04vw;
-    }
-
-    .chat {
-        margin-top: 10vw;
-
-    }
-
-    .chats {
-        margin-left: 2vw;
-        margin-top: 0.52vw;
-    }
-
-    .text_chat {
-        margin-top: -0.52vw;
-    }
-
-    a {
-        text-decoration: none;
-    }
-
-
 }
 
-
-body {
-    margin: 0;
+*{
     font-family: "Unbounded", serif;
-    transition: background-color 0.3s ease;
-}
-
-.container {
-    display: flex;
-}
-
-h1,
-h2,
-h3,
-p,
-a {
-    font-family: "Unbounded", serif;
-
-}
-
-.content {
-    margin-left: 23.44vw;
-    padding: 1.04vw;
-}
-
-.sidebar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 18.23vw;
-    height: 100%;
-    background-color: #865DF8;
-    padding: 1.04vw;
-    border-radius: 0vw 1.56vw 0vw 1.56vw;
-    box-shadow: 0.10vw 0 0.26vw rgba(0, 0, 0, 0.1);
-}
-
-.sidebar a {
-    display: block;
-    padding: 0.52vw 0;
-    color: #ffffff;
+    font-optical-sizing: auto;
+    color: black;
     text-decoration: none;
+    margin: 0;
+    padding: 0;
 }
 
-.avatar_block_nav {
-    width: 11.20vw;
-    height: 11.20vw;
+body{
+    overflow-x: hidden;
+    background-color: #181C22;
 }
+.container { 
+    margin-top: 2vw;
+    margin-bottom: 1.5vw;
+    padding-left: 2.86vw;
+    padding-right: 3.91vw;
+} 
 
-.links_nav {
-    margin-top: 3.65vw;
-}
-
-.logo {
-    width: 11.20vw;
-    height: 1.51vw;
-    margin-bottom: 4.17vw;
-    margin-top: -1.60vw;
-
-}
-
-.links_page,
-.exit_link_nav {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    margin-bottom: 1.77vw;
-    margin-left: 2.60vw;
-}
-
-.icon_link {
-    padding-right: 1.41vw;
-    width: 1.82vw;
-    height: 1.72vw;
-}
-
-.name_link,
-.exit_link {
-    width: 9.22vw;
-    font-weight: 400;
-    font-size: 1.04vw;
-    line-height: 1.30vw;
-    color: #FFFFFF;
-}
-
-.exit_link_nav {
-    margin-top: 7.21vw;
-}
-
-.bckgr {
-    position: relative;
-    z-index: -30;
-}
-
-.backgr_main {
-    /* position: absolute; */
-    position: fixed;
-    margin-left: 13.02vw;
-    margin-top: -10.42vw;
-    width: 51.72vw;
-    height: 51.04vw;
-}
-
-.bckgr2 {
-    position: relative;
-    z-index: -30;
-}
-
-.backgr_main2 {
-    /* position: absolute; */
-    position: fixed;
-
-    margin-top: 31.25vw;
-    width: 51.72vw;
-    height: 51.04vw;
-}
-
-
-.name_cart {
-    margin-left: 59.90vw;
-    margin-bottom: 2.60vw;
-    margin-top: 2.08vw;
-    display: flex;
-    justify-content: center;
-    width: 10.42vw;
-    height: 2.08vw;
-    background: #865DF8;
-    border-radius: 1.56vw;
-    font-weight: 300;
-    font-size: 1.04vw;
-    line-height: 1.30vw;
-    color: #FFFFFF;
-    align-items: center;
-
-}
-
-.name_cart p {
-    padding: 0.52vw 0.26vw;
+.nothink {
+    color: white;
+    text-align: center;
+    margin-top: 20px;
 }
 </style>

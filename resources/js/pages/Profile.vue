@@ -1,84 +1,79 @@
 <template>
     <SideMenu />
-    <div class="content" id="content">
-
-        <div class="name_cart">
-            <p v-if="profileId == user.id">Мой профиль</p>
-            <p v-else>Профиль</p>
-        </div>
-        <div class="bckgr">
-            <img :src="linkApp + '/img/back.png'" alt="" class="backgr_main">
-        </div>
-        <div class="bckgr2">
-            <img :src="linkApp + '/img/back2.png'" alt="" class="backgr_main2">
-        </div>
-        <a href=""><img class="menu_mob" :src="linkApp + '/img/icons/menu_mob.png'" alt=""></a>
 
 
-        <div class="profile">
-            <div class="img_profile">
-                <img v-if="userInfo.info && userInfo.info.avatar" :src="linkApp + '/storage/' + userInfo.info.avatar"
-                    alt="">
-                <img v-else :src="linkApp + '/img/img_acc.jpg'" alt="">
-
-            </div>
-            <div class="profile_text">
-                <p class="name_accaunt" v-if="userInfo.info">{{ userInfo.info.name + ' ' +
-                    userInfo.info.surname }}</p>
-                <p class="friends_col" v-if="userInfo.friends">{{ userInfo.friends.length }} друга</p>
-                <p class="quote" v-if="userInfo.info">{{ userInfo.info.quote ?? 'Цитата не установлена :(' }}
-                </p>
-                <RouterLink v-if="profileId == user.id" :to="`/profile/${profileId}/edit`" class="redact">Изменить
-                    профиль</RouterLink>
-                <button @click="sendRequestToFriend(userInfo.id)" class="btn"
-                    v-if="profileId != user.id && !isFriend()">Добавить в друзья</button>
-                <button @click="openChat(userInfo.id ,isFriend().chat_id)" class="add_but btn"
-                    v-if="profileId != user.id && isFriend()">Открыть чат</button>
-                <button @click="deleteFriend(userInfo.id)" class="btn"
-                    v-if="profileId != user.id && isFriend()">Удалить из друзей</button>
+    <div class="content">
+        <div class="container">
+            <div class="block1">
+                <div @click="$router.go(-1)"><img class="back_arrow" :src="linkApp + '/img/profile_img/back_arrow.png'"></div>
+                <RouterLink to="/"><img :src="linkApp + '/img/welcome_img/logo.png'" alt="" class="logo"></RouterLink>
             </div>
         </div>
+    </div>
 
 
 
-        <div class="content" v-if="isAuthenticated">
-            <div class="container">
-                <div class="block5">
-                    <div class="friends">
-                        <p class="main_title_friends">Друзья</p>
-
-                        <div v-for="friend in userInfo.friends" class="one_friend">
-                            <div style="display: flex; align-items: center; gap: 1vw;">
-                                <img @click="$router.push(`/profile/${friend.id}`)" v-if="friend && friend.avatar"
-                                    :src="linkApp + '/storage/' + friend.avatar" alt="" class="avatar_friend" />
-                                <img @click="$router.push(`/profile/${friend.id}`)" v-else
-                                    :src="linkApp + '/img/img_acc.jpg'" class="avatar_friend" />
-                                <div class="text_friend" @click="$router.push(`/profile/${friend.id}`)">
-                                    <p class="name_friend" v-if="friend">{{ friend.name + ' ' +
-                                        friend.surname }}</p>
-                                    <p class="quote_friend" v-if="friend">{{ friend.quote }}</p>
-                                </div>
-                            </div>
-                            <a v-if="userInfo.id == user.id"
-                                @click.prevent="openChat(friend.id, friend.chat_id ? friend.chat_id : null)">
-                                <img :src="linkApp + '/img/icons/chat.png'" alt="" class="avatar_icon" />
-                            </a>
-                        </div>
+    <div class="bckgr">
+        <img :src="linkApp + '/img/welcome_img/backgr_main.png'" alt="" class="backgr_main">
+    </div>
 
 
+    <div class="content">
+        <div class="container">
+            <div class="block2">
 
+                <div class="my_profile">
+                    <img v-if="userInfo.info && userInfo.info.avatar"
+                        :src="linkApp + '/storage/' + userInfo.info.avatar" class="my_profile_avatar" alt="">
+                    <img v-else :src="linkApp + '/img/img_acc.jpg'" class="my_profile_avatar" alt="">
+                    <div class="text_content">
+                        <h1 class="my_name" v-if="userInfo.info">{{ userInfo.info.name + ' ' +
+                            userInfo.info.surname }}</h1>
+                        <p class="count_friends" v-if="userInfo.friends">{{ userInfo.friends.length }} друга</p>
+                        <p class="my_quote" v-if="userInfo.info">{{ userInfo.info.quote }}
+                        </p>
+                        <RouterLink v-if="profileId == user.id" :to="`/profile/${profileId}/edit`"
+                            class="btn_edit_profile">
+                            Изменить профиль
+                        </RouterLink>
+
+
+
+
+
+                        <button @click="sendRequestToFriend(userInfo.id)" class="btn_edit_profile"
+                            v-if="profileId != user.id && !isFriend()">Добавить в друзья</button>
+                        <button @click="openChat(userInfo.id, isFriend().chat_id)"class="btn_edit_profile"
+                            v-if="profileId != user.id && isFriend()">Открыть чат</button>
+                        <button @click="deleteFriend(userInfo.id)" class="btn_edit_profile"
+                            v-if="profileId != user.id && isFriend()" style="margin-left: 1vw;">Удалить из друзей</button>
+
+
+                            
                     </div>
                 </div>
             </div>
         </div>
-
-        <label class="my_post" for="">{{ profileId == user.id ? 'Мои посты' : 'Посты' }}</label>
-        <div v-if="!userPosts">
-            <p style="margin-top: 30px;">Вы ещё не создавали постов, хотите добавить?</p>
-            <button @click="$router.push('/post/create')" class="btn_post">Создать пост</button>
-        </div>
-        <Post v-else :Posts="userPosts" @like="getPosts" @delete-post="getPosts"/>
     </div>
+
+
+
+
+
+
+
+
+
+
+    <FriendBar :friends="userInfo.friends"/>
+    <div class="my_post" for="">{{ profileId == user.id ? 'Мои посты' : 'Посты' }}</div>
+    
+    <div v-if="!userPosts">
+        <p style="margin-top: 30px;">Вы ещё не создавали постов, хотите добавить?</p>
+        <button @click="$router.push('/post/create')" class="btn_post">Создать пост</button>
+    </div>
+    
+    <Post v-else :Posts="userPosts" @like="getPosts" @delete-post="getPosts" />
 
 </template>
 <script>
@@ -152,7 +147,7 @@ export default {
         },
         isFriend() {
             if (!this.userInfo.friends) return null;
-            const friend =  this.userInfo.friends.find(friend => friend.id === this.user.id);
+            const friend = this.userInfo.friends.find(friend => friend.id === this.user.id);
             return friend ? { id: friend.id, chat_id: friend.chat_id } : null;
         },
     },
@@ -176,86 +171,464 @@ export default {
 }
 </script>
 <style scoped>
-.add_but {
+
+.my_post{
+    font-size: 1.8vw;
+    margin-left: 24.83vw;
+    color: #F4F4F4;
+    margin-bottom: 2vw;
+}
+.block1 {
+    width: 70vw;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.logo {
+    width: 8.49vw;
+    height: 1.56vw;
+
+}
+
+.back_arrow {
+    width: 1.20vw;
+    height: 1.98vw;
+}
+
+/* -----------------------------block2--------------------------------- */
+.my_profile {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 2.76vw;
+}
+
+.my_profile_avatar {
+    border-radius: 5.6vw;
+    width: 11.20vw;
+    height: 11.20vw;
+}
+
+.my_name {
+    width: 39.17vw;
+    font-weight: 400;
+    font-size: 1.67vw;
+    line-height: 2.08vw;
+    color: #FFFFFF;
+    margin-bottom: 1.04vw;
+}
+
+.count_friends {
+    font-weight: 300;
+    font-size: 1.04vw;
+    line-height: 1.30vw;
+    color: #FFFFFF;
+    margin-bottom: 0.94vw;
+}
+
+.my_quote {
+    width: 46.30vw;
+    font-weight: 300;
+    font-size: 1.04vw;
+    line-height: 1.30vw;
+    color: #FFFFFF;
+    padding-bottom: 1.77vw;
+}
+
+.btn_edit_profile {
     cursor: pointer;
-    background: #865DF8;
+    font-weight: 500;
+    font-size: 1.04vw;
+    line-height: 1.30vw;
+    color: #FFFFFF;
+    padding: 0.52vw 0.31vw;
+    background: #C68DFE;
+    border-radius: 0.52vw;
+}
+
+/* ------------------------------------block3----------------------------- */
+.main_title {
+    width: 11.46vw;
+    font-weight: 400;
+    font-size: 1.67vw;
+    line-height: 2.08vw;
+    color: #FFFFFF;
+    margin-top: 6.61vw;
+    margin-bottom: 1.93vw;
+}
+
+.block4 {
+    display: flex;
+    flex-direction: column;
+    gap: 1.72vw;
+}
+
+.block4_account {
+    display: flex;
+    flex-direction: row;
+    gap: 1.67vw;
+    align-items: center;
+}
+
+.account {}
+
+.avatar_account {
+    width: 4.58vw;
+    height: 4.58vw;
+}
+
+.post_account {
+    display: flex;
+    flex-direction: column;
+    gap: 0.57vw;
+}
+
+.category_post {
+    display: flex;
+    justify-content: center;
+    width: 7.24vw;
+    height: 1.77vw;
+    background: #C68DFE;
     border-radius: 1.56vw;
     font-weight: 300;
     font-size: 1.04vw;
     line-height: 1.30vw;
     color: #FFFFFF;
     align-items: center;
-    margin-bottom: 0.52vw;
-}
-.btn_post {
-    cursor: pointer;
-    margin-top: 20px;
-    padding: 0.5vw 1.5vw;
-    border: 1px solid #865DF8;
-    border-radius: 0.5vw;
 }
 
-body {
-    margin: 0;
-    font-family: "Unbounded", serif;
-    transition: background-color 0.3s ease;
+.name_account {
+    font-weight: 500;
+    font-size: 1.04vw;
+    line-height: 1.30vw;
+    color: #C68DFE;
 }
 
-.btn {
-    cursor: pointer;
-    margin-top: 1vw;
-    padding: 0.5vw 1vw;
-    border-radius: 2vw;
-    border-color: #865DF8;
+.post_img {
+    width: 45.68vw;
+    height: 30.10vw;
+    border-radius: 0.52vw;
 }
 
-.like {
-    margin-top: 15px;
-    cursor: pointer;
-    margin-left: 20px;
-    gap: 15px;
-    display: flex;
-    align-items: center;
-    font-size: 28px;
+.description {
+    width: 45.68vw;
+    font-weight: 300;
+    font-size: 1.04vw;
+    line-height: 1.30vw;
+    color: #FFFFFF;
+    margin-top: 1.35vw;
+    margin-bottom: 4.17vw;
 }
+
+/* -----------------------------------block5--------------------------------------- */
+.block5 {}
 
 .friends {
     position: fixed;
     width: 22.03vw;
-    height: 33.85vw;
-    background-color: #F2EDFE;
-    border-radius: 1.56vw;
-    margin-left: 25vw;
-    margin-top: 0.05vw;
+    height: 36.93vw;
+    border: 0.05vw solid rgba(198, 141, 254, 0.25);
+    border-radius: 0.52vw;
+    right: 5vw;
+    top: 7.46vw;
+}
+
+.main_title_friends {
+    width: 7.86vw;
+    font-weight: 400;
+    font-size: 1.04vw;
+    line-height: 1.30vw;
+    color: #FFFFFF;
+    margin-left: 1.04vw;
+    margin-top: 1.04vw;
+    margin-bottom: 2.60vw;
+}
+
+.one_friend {
+    margin-top: 0.83vw;
+    margin-left: 1.04vw;
+    width: 19.9vw;
+
+    background: rgba(206, 157, 255, 0.2);
+    border-radius: 0.52vw;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 0.78vw;
+    padding-bottom: 0.78vw;
+    padding-left: 0.42vw;
+    padding-right: 0.42vw;
+}
+
+.avatar_friend {
+    border-radius: 1.9vw;
+    width: 2.71vw;
+    height: 2.71vw;
+}
+
+.name_friend {
+    width: 9.11vw;
+    font-weight: 400;
+    font-size: 0.73vw;
+    line-height: 0.89vw;
+    color: #FFFFFF;
+    margin-bottom: 0.78vw;
+}
+
+.quote_friend {
+    font-weight: 400;
+    font-size: 0.63vw;
+    line-height: 0.78vw;
+    color: rgba(255, 255, 255, 0.65);
+}
+
+.avatar_icon {
+    width: 2.03vw;
+    height: 1.93vw;
+}
+
+
+
+.bckgr {
+    position: relative;
+    z-index: -30;
+}
+
+.backgr_main {
+    /* position: absolute; */
+    position: fixed;
+    margin-left: 20.83vw;
+    margin-top: 5.21vw;
+    width: 75.83vw;
+    height: 55.57vw;
+}
+
+.navbar,
+.add_post {
+    display: none;
+}
+
+/* -----------------------------------media----------------------------- */
+@media ((min-width: 320px) and (max-width: 766px)) {
+    .sidebar {
+        display: none;
+    }
+
+    .content {
+        margin-left: -1vw;
+
+    }
+
+    .avatar_mobile {
+        display: block;
+        width: 10.63vw;
+        height: 10.63vw;
+    }
+
+    .block1 {
+        display: flex;
+        align-items: center;
+    }
+
+    .main_title {
+        font-weight: 400;
+        font-size: 4.69vw;
+        line-height: 5.94vw;
+        color: #C68DFE;
+        width: 35vw;
+    }
+
+    .add_post {
+        display: block;
+        width: 10.63vw;
+        height: 10.63vw;
+    }
+
+    .logo,
+    .friends {
+        display: none;
+    }
+
+    .navbar {
+        display: block;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        background-color: #181C22;
+        position: fixed;
+        bottom: 0;
+        width: 100%;
+        height: 18.75vw;
+        border-top: 0.31vw solid #C68DFE;
+    }
+
+
+
+    .nav-item img {
+        width: 9.38vw;
+        height: 9.38vw;
+    }
+
+    .nav-item {
+        color: white;
+        text-align: center;
+        text-decoration: none;
+        transition: opacity 0.3s;
+    }
+
+    .nav-item:hover {
+        opacity: 0.7;
+    }
+
+    .custom-select {
+        width: 57.50vw;
+        background: #C68DFE;
+        border-radius: 6.25vw;
+
+        font-weight: 300;
+        font-size: 3.75vw;
+        line-height: 4.69vw;
+        color: #FFFFFF;
+        padding: 1.47vw 1.09vw;
+
+    }
+
+    .arrow-icon {
+        width: 4.69vw;
+        height: 2.19vw;
+        margin-left: 51.56vw;
+        margin-top: 3.13vw;
+    }
+
+    .option-list {
+        width: 56.25vw;
+        display: none;
+        position: absolute;
+        background-color: #F4F4F4;
+        border: 0.05vw solid #ccc;
+        border-radius: 1.30vw;
+        z-index: 1000;
+        font-size: 3.04vw;
+        padding: 2.04vw;
+    }
+
+    .option-item {
+        padding: 1.5vw;
+    }
+
+
+    .avatar_account {
+        width: 13.13vw;
+        height: 13.13vw;
+    }
+
+    .category_post {
+        width: 25.63vw;
+        height: 5.63vw;
+        background: #C68DFE;
+        border-radius: 9.38vw;
+        font-weight: 300;
+        font-size: 11px;
+        line-height: 4.38vw;
+        color: #FFFFFF;
+    }
+
+    .name_account {
+        font-size: 3.75vw;
+    }
+
+    .post_account {
+        gap: 3.57vw;
+    }
+
+    .post_img {
+        width: 93.75vw;
+        height: 51.56vw;
+    }
+
+    .description {
+        width: 93.75vw;
+        font-weight: 300;
+        font-size: 3.44vw;
+        line-height: 4.38vw;
+        color: #FFFFFF;
+    }
+
+    .block4 {
+        gap: 3.72vw;
+    }
+
+    .back_arrow {
+        width: 5.20vw;
+        height: 6.98vw;
+    }
+
+    .my_profile_avatar {
+        width: 91px;
+        height: 91px;
+    }
+
+    .my_name {
+        font-weight: 400;
+        font-size: 4.69vw;
+        line-height: 5.94vw;
+        color: #C68DFE;
+        margin-bottom: 4.04vw;
+    }
+
+    .count_friends {
+        font-weight: 300;
+        font-size: 3.75vw;
+        line-height: 4.69vw;
+        /* identical to box height */
+        color: #FFFFFF;
+        margin-bottom: 2.94vw;
+    }
+
+    .my_quote {
+        width: 62.19vw;
+        font-weight: 400;
+        font-size: 3.75vw;
+        line-height: 4.69vw;
+        color: #FFFFFF;
+        padding-bottom: 2.77vw;
+    }
+
+    .btn_edit_profile {
+        width: 55vw;
+        height: 10.31vw;
+        background: #C68DFE;
+        border-radius: 3.13vw;
+        font-weight: 400;
+        font-size: 3.75vw;
+        line-height: 4.69vw;
+        color: #FFFFFF;
+        padding: 0.52vw 5.31vw;
+    }
+
+
+
+
 }
 
 .container {
-    display: flex;
+    margin-top: 2vw;
+    margin-bottom: 1.5vw;
+    padding-left: 2.86vw;
+    padding-right: 3.91vw;
 }
 
-h1,
-h2,
-h3,
-p,
-a {
-    font-family: "Unbounded", serif;
-
-}
-
-.content {
-    margin-left: 23.44vw;
-    padding: 1.04vw;
-}
-
+/* -------------------------------------------------------------------------- */
 .sidebar {
     position: fixed;
     top: 0;
     left: 0;
-    width: 18.23vw;
+    width: 20.83vw;
     height: 100%;
-    background-color: #865DF8;
+    background-color: #181C22;
     padding: 1.04vw;
-    border-radius: 0vw 1.56vw 0vw 1.56vw;
     box-shadow: 0.10vw 0 0.26vw rgba(0, 0, 0, 0.1);
 }
 
@@ -264,6 +637,35 @@ a {
     padding: 0.52vw 0;
     color: #ffffff;
     text-decoration: none;
+}
+
+.sidebar a:hover {
+    /* background-color: #ddd; */
+}
+
+.content {
+    margin-left: 20.83vw;
+    padding: 1.04vw;
+}
+
+.avatar_block {
+    width: 17.50vw;
+    height: 16.46vw;
+    background: #22232F;
+    border-radius: 0.52vw;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.name_user_nav {
+    margin-top: 1.35vw;
+    width: 11.56vw;
+    font-weight: 500;
+    font-size: 1.04vw;
+    line-height: 1.30vw;
+    color: #FFFFFF;
 }
 
 .avatar_block_nav {
@@ -275,21 +677,12 @@ a {
     margin-top: 3.65vw;
 }
 
-.logo {
-    width: 11.20vw;
-    height: 1.51vw;
-    margin-bottom: 4.17vw;
-    margin-top: -1.60vw;
-
-}
-
 .links_page,
 .exit_link_nav {
     display: flex;
     flex-direction: row;
     align-items: center;
     margin-bottom: 1.77vw;
-    margin-left: 2.60vw;
 }
 
 .icon_link {
@@ -311,417 +704,13 @@ a {
     margin-top: 7.21vw;
 }
 
-
-
-.bckgr {
-    position: relative;
-    z-index: -30;
-}
-
-.backgr_main {
-    /* position: absolute; */
-    position: fixed;
-    margin-left: 13.02vw;
-    margin-top: -10.42vw;
-    width: 51.72vw;
-    height: 51.04vw;
-}
-
-.bckgr2 {
-    position: relative;
-    z-index: -30;
-}
-
-.backgr_main2 {
-    /* position: absolute; */
-    position: fixed;
-
-    margin-top: 31.25vw;
-    width: 51.72vw;
-    height: 51.04vw;
-}
-
-.name_cart {
-    margin-left: 59.90vw;
-    margin-bottom: 2.60vw;
-    margin-top: 2.08vw;
-    display: flex;
-    justify-content: center;
-    width: 10.42vw;
-    height: 2.08vw;
-    background: #865DF8;
-    border-radius: 1.56vw;
-    font-weight: 300;
-    font-size: 1.04vw;
-    line-height: 1.30vw;
-    color: #FFFFFF;
-    align-items: center;
-
-}
-
-.name_cart p {
-    padding: 0.52vw 0.26vw;
-}
-
-.profile {
-    display: flex;
-}
-
-.img_profile img {
-
-    width: 9.84vw;
-    height: 9.84vw;
-    border: 0.52vw solid #865DF8;
-    border-radius: 5.21vw;
-}
-
-.profile_text {
-    margin-left: 2.08vw;
-}
-
-.name_accaunt {
-    width: 23.80vw;
-    height: 1.30vw;
-    font-weight: 400;
-    font-size: 1.67vw;
-}
-
-.friends_col {
-    margin-top: 15px;
-    font-size: 1.04vw;
-}
-
-.quote {
-
-    width: 33.85vw;
-    height: 2.60vw;
-
-    font-style: normal;
-    font-weight: 300;
-    font-size: 1.04vw;
-}
-
-.redact {
-    font-size: 1.04vw;
-    text-decoration: none;
-    color: #865DF8;
-}
-
-.friends {
-    position: fixed;
-    width: 22.03vw;
-    height: 33.85vw;
-    background-color: #F2EDFE;
-    border-radius: 1.56vw;
-
-    margin-left: 25vw;
-    margin-top: -9.75vw;
-}
-
-.main_title_friends {
-    width: 7.86vw;
-    font-weight: 400;
-    font-size: 1.04vw;
-    line-height: 1.30vw;
-    color: #865DF8;
-    margin-left: 1.56vw;
-    margin-top: 1.30vw;
-    margin-bottom: 2.60vw;
-}
-
-.one_friend {
-    margin-top: 0.83vw;
-    margin-left: 1.04vw;
-    width: 19.22vw;
-
-    border-radius: 0.52vw;
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-
-    padding-left: 0.42vw;
-    padding-right: 0.42vw;
-}
-
-.avatar_friend {
-    cursor: pointer;
-    border-radius: 1.8vw;
-    width: 3.65vw;
-    height: 3.65vw;
-}
-
-.name_friend {
-    font-family: var(--default-font-family, ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji");
-    /* width: 9.11vw;  */
-    font-weight: 400;
-    /* font-size: 0.73vw;
-    line-height: 0.89vw;
-    color: #865DF8;
-    margin-bottom: 0.78vw; */
-}
-
-.quote_friend {
-    width: 7.8vw;
-    text-overflow: ellipsis;
-    text-wrap: nowrap;
-    overflow: hidden;
-    font-weight: 400;
-    font-size: 0.63vw;
-    line-height: 0.78vw;
-    color: rgba(134, 93, 248, 0.47);
-}
-
-.avatar_icon {
-    cursor: pointer;
-    width: 2.03vw;
-    height: 1.93vw;
-}
-
-.text_friend {
-    cursor: pointer;
-}
-
-
-
-
-
-.piple {
-    display: flex;
-}
-
-.news {
-    margin-top: 2.60vw;
-    width: 39.32vw;
-    margin-bottom: 2.60vw;
-}
-
-.img_avatar {
-    width: 4.58vw;
-    height: 4.58vw;
-    border-radius: 1.56vw;
-}
-
-.news_img {
-    width: 38.80vw;
-    height: 25.63vw;
-    border-radius: 0.52vw;
-}
-
-.new_content p {
-
-    font-family: 'Unbounded';
-    font-style: normal;
-    font-weight: 300;
-    font-size: 1.04vw;
-    line-height: 1.56vw;
-}
-
-.name_profile {
-    margin-top: 0.26vw;
-    font-family: 'Unbounded';
-    font-style: normal;
-    font-weight: 500;
-    font-size: 1.25vw;
-    color: #865DF8;
-}
-
-.category_name {
-    display: flex;
-    justify-content: center;
-    width: 7.24vw;
-    margin-top: -0.63vw;
-    height: 1.77vw;
-    background: #865DF8;
-    border-radius: 1.56vw;
-    font-weight: 300;
-    font-size: 1.04vw;
-    line-height: 1.30vw;
-    color: #FFFFFF;
-    align-items: center;
-}
-
-.name_piple {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    margin-left: 1.04vw;
-}
-
-.my_post {
-
-    font-family: 'Unbounded';
-    font-style: normal;
-    font-weight: 500;
-    font-size: 1.67vw;
-    line-height: 2.08vw;
-
-    color: #865DF8;
-
-}
-
-.menu_mob {
-    display: none;
-}
-
-@media (max-width:320px) {
-
+@media ((min-width: 320px) and (max-width: 766px)) {
     .sidebar {
         display: none;
     }
 
-    .popup {
-        display: none;
-    }
-
-    .block5 {
-        display: none;
-    }
-
-    .menu_mob {
-        display: block;
-        width: 13vw;
-        height: 5vw;
-        margin-top: -6vw;
-        margin-left: 1vw;
-
-
-    }
-
-    .name_cart {
-        margin-left: 65vw;
-        width: 30.25vw;
-        height: 4.25vw;
-        background: #865DF8;
-        border-radius: 5vw;
-        font-weight: 300;
-        font-size: 3vw;
-        line-height: 1.30vw;
-        color: #FFFFFF;
-        align-items: center;
-
-    }
-
-
-    #categoryButtons {
-        font-size: 6.25vw;
-        margin-top: 5vw;
-    }
-
-
-
-    .news {
-        width: 100vw;
-        margin-bottom: 2.60vw;
-    }
-
-    .img_avatar {
-        width: 10.06vw;
-        height: 10.06vw;
-        border-radius: 1.56vw;
-    }
-
-    .news_img {
-        width: 100vw;
-        height: 66.25vw;
-        margin-left: -1.2vw;
-        border-radius: none;
-    }
-
-    .new_content p {
-        width: 90vw;
-        font-family: 'Unbounded';
-        font-style: normal;
-        font-weight: 300;
-        font-size: 2.5vw;
-        line-height: 4vw;
-    }
-
-    .name_profile {
-        margin-top: 0.26vw;
-        font-family: 'Unbounded';
-        font-style: normal;
-        font-weight: 500;
-        font-size: 3vw;
-        color: #865DF8;
-    }
-
-    .category_name {
-        width: 15vw;
-        margin-top: -0.63vw;
-        padding: 1vw;
-        border-radius: 3w;
-        font-weight: 300;
-        font-size: 2vw;
-
-    }
-
-    .name_piple {
-        margin-left: 1.04vw;
-    }
-
     .content {
-        margin-left: 0.05vw;
-    }
-
-    .piple,
-    .new_content p {
-        margin-left: 5vw;
-    }
-
-    .profile {
-        flex-direction: column;
-    }
-
-    .img_profile img {
-
-        width: 35.31vw;
-        height: 35.31vw;
-        border-radius: 30vw;
-        border: 1vw solid #865DF8;
-        margin-left: 30vw;
-    }
-
-    .profile_text {}
-
-    .name_accaunt {
-        display: flex;
-        justify-content: center;
-        font-size: 4vw;
-        width: 300px;
-    }
-
-    .friends_col {
-        font-size: 2vw;
-        display: flex;
-        justify-content: center;
-    }
-
-    .quote {
-        margin-left: 9vw;
-        width: 75vw;
-        font-size: 2.5vw;
-        display: flex;
-        justify-content: center;
-        text-align: center;
-    }
-
-    .redact {
-        display: flex;
-        justify-content: center;
-        margin-top: 5vw;
-        font-size: 2.5vw;
-        margin-bottom: 10vw;
-    }
-
-    .my_post {
-        font-size: 4vw;
-        margin-left: 5vw;
-
-    }
-
-    .news {
-        margin-top: 10vw;
+        margin-left: -1vw;
     }
 }
 </style>

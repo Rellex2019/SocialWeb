@@ -1,164 +1,251 @@
 <template>
-    <div class="content" v-if="isAuthenticated">
-        <div class="container">
-            <div class="block5">
-                <div class="friends" :style="{ marginTop: customTop }">
-                    <p class="main_title_friends">Друзья</p>
-
-                    <div v-if="!friends" v-for="friend in friendsInfo" class="one_friend">
-
-                        <div style="display: flex; align-items: center; gap: 1vw;">
-                        <img @click="$router.push(`/profile/${friend.id}`)" v-if="friend.user_info && friend.user_info.avatar" :src="linkApp + '/storage/' + friend.user_info.avatar" alt="" class="avatar_friend" />
-                        <img @click="$router.push(`/profile/${friend.id}`)" v-else :src="linkApp + '/img/img_acc.jpg'"  class="avatar_friend" />
-                        <div class="text_friend"  @click="$router.push(`/profile/${friend.id}`)">
-                            <p class="name_friend" v-if="friend.user_info">{{ friend.user_info.name + ' ' +
-                                friend.user_info.surname }}</p>
-                            <p class="quote_friend" v-if="friend.user_info">{{ friend.user_info.quote }}</p>
-                        </div>
-
-                        </div>                        
-                        <a @click.prevent="openChat(friend.id, friend.chats.id ?? null)">
-                            <img :src="linkApp + '/img/icons/chat.png'" alt="" class="avatar_icon" />
-                        </a>
-
-                    </div>
-
-
-
-                </div>
+    <div class="friends-container" v-if="isAuthenticated">
+      <div class="friends-header">
+        <p class="friends-title">Друзья</p>
+      </div>
+      
+      <div v-if="!friends" class="friends-list">
+        <div  v-for="friend in friendsInfo" :key="friend.id" class="friend-item">
+          <div class="friend-info" @click="$router.push(`/profile/${friend.id}`)">
+            <img 
+              v-if="friend.user_info && friend.user_info.avatar" 
+              :src="linkApp + '/storage/' + friend.user_info.avatar" 
+              class="friend-avatar" 
+              alt="Аватар друга"
+            />
+            <img 
+              v-else 
+              :src="linkApp + '/img/img_acc.jpg'"  
+              class="friend-avatar" 
+              alt="Аватар по умолчанию"
+            />
+            
+            <div class="friend-details">
+              <p class="friend-name" v-if="friend.user_info">
+                {{ friend.user_info.name + ' ' + friend.user_info.surname }}
+              </p>
+              <p class="friend-quote" v-if="friend.user_info && friend.user_info.quote">
+                {{ friend.user_info.quote }}
+              </p>
             </div>
+          </div>
+          
+          <button 
+            class="chat-button" 
+            @click.prevent="openChat(friend.id, friend.chats?.id ?? null)"
+            aria-label="Открыть чат"
+          >
+            <img 
+              :src="linkApp + '/img/welcome_img/icon_link_page_1.png'" 
+              class="chat-icon" 
+              alt="Иконка чата"
+            />
+          </button>
         </div>
-    </div>
-</template>
-<script>
-import { mapGetters } from 'vuex/dist/vuex.cjs.js';
+      </div>
 
-export default {
-    name: 'friendBar',
+
+      <div v-else-if="friends" class="friends-list">
+        <div  v-for="friend in friends" :key="friend.id" class="friend-item">
+          <div class="friend-info" @click="$router.push(`/profile/${friend.id}`)">
+            <img 
+              v-if="friend.avatar" 
+              :src="linkApp + '/storage/' + friend.avatar" 
+              class="friend-avatar" 
+              alt="Аватар друга"
+            />
+            <img 
+              v-else 
+              :src="linkApp + '/img/img_acc.jpg'"  
+              class="friend-avatar" 
+              alt="Аватар по умолчанию"
+            />
+            
+            <div class="friend-details">
+              <p class="friend-name" v-if="friend">
+                {{ friend.name + ' ' + friend.surname }}
+              </p>
+              <p class="friend-quote" v-if="friend && friend.quote">
+                {{ friend.quote }}
+              </p>
+            </div>
+          </div>
+          
+          <button 
+            class="chat-button" 
+            @click.prevent="openChat(friend.id, friend.chat_id ?? null)"
+            aria-label="Открыть чат"
+          >
+            <img 
+              :src="linkApp + '/img/welcome_img/icon_link_page_1.png'" 
+              class="chat-icon" 
+              alt="Иконка чата"
+            />
+          </button>
+        </div>
+      </div>
+    </div>
+  </template>
+  
+  <script>
+  import { mapGetters } from 'vuex';
+  import axios from 'axios';
+  
+  export default {
+    name: 'FriendsList',
     data() {
-        return {
-            friendsInfo: [],
-            linkApp: "",
-        }
+      return {
+        linkApp: '',
+        friendsInfo: []
+      }
     },
     props: {
-        customTop: {
-            required: false
-        },
-        friends:{
-            required:false
-        }
+      customTop: {
+        type: String,
+        required: false,
+        default: ''
+      },
+      friends: {
+        type: Array,
+        required: false,
+        default: null
+      }
     },
     methods: {
-        async getFriends() {
-            await axios.get('/friend').then(response => {
-                this.friendsInfo = response.data;
-            })
-        },
-        async openChat(friendId, chatId) {
-            await axios.post(`/chat/${friendId}/message/`, { chatId })
-                .then(response => {
-                    this.$router.push(`/chat/${response.data.chatId}`)
-                })
-        },
+      async getFriends() {
+        try {
+          const response = await axios.get('/friend');
+          this.friendsInfo = response.data;
+        } catch (error) {
+          console.error('Ошибка при загрузке друзей:', error);
+        }
+      },
+      async openChat(friendId, chatId = null) {
+        console.log([friendId, chatId]);
+        try {
+          const response = await axios.post(`/chat/${friendId}/message/`, { chatId });
+          this.$router.push(`/chat/${response.data.chatId}`);
+        } catch (error) {
+          console.error('Ошибка при открытии чата:', error);
+        }
+      }
     },
     computed: {
-        ...mapGetters('authStore', ['isAuthenticated', 'user']),
-
+      ...mapGetters('authStore', ['isAuthenticated', 'user'])
     },
-    mounted() {
-        if (this.isAuthenticated) {
-            this.getFriends();
+    created() {
+      this.linkApp = import.meta.env.VITE_APP_URL;
+      if (this.isAuthenticated && !this.friends) {
+        this.getFriends();
+      }
+    },
+    watch: {
+      isAuthenticated(newVal) {
+        if (newVal && !this.friends) {
+          this.getFriends();
         }
-
-    },
-}
-</script>
-<style scoped>
-.content {
-    margin-left: 0.05vw;
-    padding: 1.04vw;
-}
-
-.container {
-    display: flex;
-}
-
-.block5 {
-    display: block;
-}
-
-.friends {
+      }
+    }
+  }
+  </script>
+  
+  <style scoped>
+  .friends-container {
     position: fixed;
     width: 22.03vw;
-    height: 33.85vw;
-    background-color: #f2edfe;
-    border-radius: 1.56vw;
-
-    margin-left: 25vw;
-    margin-top: 0.05vw;
-}
-
-.main_title_friends {
-    font-family: 'Unbounded';
-    width: 7.86vw;
+    right: 5vw;
+    top: 7.46vw;
+    border: 0.05vw solid rgba(198, 141, 254, 0.25);
+    border-radius: 0.52vw;
+    background-color: rgba(24, 28, 34, 0.9);
+    padding: 1vw;
+    z-index: 100;
+  }
+  
+  .friends-header {
+    margin-bottom: 1.5vw;
+  }
+  
+  .friends-title {
     font-weight: 400;
     font-size: 1.04vw;
-    line-height: 1.3vw;
-    color: #865df8;
-    margin-left: 1.56vw;
-    margin-top: 1.3vw;
-    margin-bottom: 2.6vw;
-}
-
-.one_friend {
-    margin-top: 0.83vw;
-    margin-left: 1.04vw;
-    width: 19.22vw;
-
-    border-radius: 0.52vw;
+    color: #FFFFFF;
+    margin: 0;
+  }
+  
+  .friends-list {
+    max-height: 30vw;
+    overflow-y: auto;
+  }
+  
+  .friend-item {
     display: flex;
-    flex-direction: row;
     justify-content: space-between;
     align-items: center;
-
-    padding-left: 0.42vw;
-    padding-right: 0.42vw;
-}
-
-.avatar_friend {
+    padding: 0.78vw;
+    margin-bottom: 0.83vw;
+    background: rgba(206, 157, 255, 0.2);
+    border-radius: 0.52vw;
+  }
+  
+  .friend-info {
+    display: flex;
+    align-items: center;
+    gap: 1vw;
+    flex-grow: 1;
     cursor: pointer;
-    width: 3.65vw;
-    height: 3.65vw;
-    border: 1px solid #865DF8;
-    border-radius: 5.21vw;
-}
-
-.text_friend {
-    cursor: pointer;
-}
-
-.quote_friend {
-    width: 7.8vw;
-    text-overflow: ellipsis;
-    text-wrap: nowrap;
-    overflow: hidden;
+  }
+  
+  .friend-avatar {
+    width: 2.71vw;
+    height: 2.71vw;
+    border-radius: 1.9vw;
+    object-fit: cover;
+  }
+  
+  .friend-details {
+    flex-grow: 1;
+  }
+  
+  .friend-name {
+    font-weight: 400;
+    font-size: 0.73vw;
+    color: #FFFFFF;
+    margin: 0 0 0.2vw 0;
+  }
+  
+  .friend-quote {
     font-weight: 400;
     font-size: 0.63vw;
-    line-height: 0.78vw;
-    color: rgba(134, 93, 248, 0.47);
-    font-family: 'Unbounded';
-}
-
-.avatar_icon {
+    color: rgba(255, 255, 255, 0.65);
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 12vw;
+  }
+  
+  .chat-button {
+    background: none;
+    border: none;
+    padding: 0;
     cursor: pointer;
+  }
+  
+  .chat-icon {
     width: 2.03vw;
     height: 1.93vw;
-}
-
-@media ((min-width: 320px) and (max-width: 766px)) {
-    .block5 {
-        display: none;
+    transition: opacity 0.2s;
+  }
+  
+  .chat-icon:hover {
+    opacity: 0.8;
+  }
+  
+  /* Адаптивность для мобильных устройств */
+  @media (max-width: 766px) {
+    .friends-container {
+      display: none;
     }
-}
-</style>
+  }
+  </style>

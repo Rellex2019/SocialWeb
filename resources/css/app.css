@@ -13,3 +13,7 @@
 body {
     font-family: 'Unbounded';
 }
+body {
+    overflow-x: hidden;
+    background-color: #181C22;
+}

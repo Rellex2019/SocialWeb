@@ -1,26 +1,39 @@
 <template>
     <SideMenu />
 
-    <div class="content" id="content">
-        <div class="name_cart">
-            <p>Управление категориями</p>
+    <div class="content">
+        <div class="container">
+            <div class="block1">
+                <div @click="$router.go(-1)"><img class="back_arrow" :src="linkApp + '/img/profile_img/back_arrow.png'">
+                </div>
+                <RouterLink to="/"><img :src="linkApp + '/img/welcome_img/logo.png'" alt="" class="logo"></RouterLink>
+            </div>
         </div>
+    </div>
+
+
+    <div class="content" id="content">
         <a href=""><img class="menu_mob" :src="linkApp + '/img/icons/menu_mob.png'" alt=""></a>
 
         <div class="form-container">
-            <p class="title">Удаление категорий</p>
-            <p class="tip">Нажмите на категорию для удаления</p>
+            <div class="container_create">
+                <p class="title">Добавить категорию</p>
+                <div style="display: flex;">
+                    <input class="input_text" v-model="category" type="text" placeholder="Введите название новой категории">
+                    <button class="but_post" @click="addCategory" type="submit">Создать</button>
+                </div>
+
+            </div>
+
+
+            <p class="title">Все категории</p>
             <div class="container_categories">
                 <div class="category" @click="deleteCategory(category)" :key="category.id"
-                    v-for="category in categories">{{ category.name }}</div>
+                    v-for="category in categories"><div style="font-size: 1.2vw;">{{ category.name }}</div><div style="font-size: 1.3vw;">✕</div></div>
             </div>
 
 
-            <div class="container_create">
-                <p class="title">Добавление категорий</p>
-                <input class="input_text" v-model="category" type="text" placeholder="Введите название новой категории">
-                <button class="but_post" @click="addCategory" type="submit">Создать</button>
-            </div>
+
         </div>
     </div>
 </template>
@@ -72,47 +85,76 @@ export default {
 }
 </script>
 <style scoped>
+.logo {
+    width: 8.49vw;
+    height: 1.56vw;
+}
+
+.back_arrow {
+    width: 1.20vw;
+    height: 1.98vw;
+}
+
+.block1 {
+    width: 100%;
+    margin-top: 2.08vw;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
 .tip {
     font-size: 1vw;
     margin-bottom: 1vw;
 }
 
 .title {
-    font-size: 1.3vw;
-    margin-bottom: 2vw;
+    margin-top: 3vw;
+    color: #C68DFE;
+    font-size: 1.2vw;
+
 }
 
 .container_create {
 
-    margin-top: 4vw;
+    margin-top: 1vw;
     display: flex;
     flex-direction: column;
     gap: 1vw;
 }
 
 .input_text {
+    flex: none;
     font-size: 1vw;
     cursor: pointer;
     width: 30vw;
     padding: 0.5vw 1vw;
-    border-radius: 2vw;
-    border: 1px solid #865DF8;
+    border-radius: 0.5vw;
+    background: rgba(198, 141, 254, 0.26);
+
+}
+
+.input_text::placeholder {
+    color: #939393;
 }
 
 .container_categories {
-
-    flex-wrap: wrap;
-    width: 65vw;
+    margin-top: 2vw;
+    width: 44vw;
     display: flex;
-    gap: 2vw;
+    gap: 1.5vw;
+    flex-direction: column;
 }
 
 .category {
     font-size: 1vw;
     cursor: pointer;
     padding: 0.8vw 2vw;
-    border-radius: 2vw;
-    border: 1px solid #865DF8;
+    border-radius: 0.5vw;
+    background: rgba(198, 141, 254, 0.26);
+    color: #F2EDFE;
+    display: flex;
+    justify-content: space-between;
 }
 
 .form-container {
@@ -129,17 +171,7 @@ h2 {
     margin-bottom: 1.04vw;
 }
 
-label {
-    margin-top: 1.56vw;
-    display: block;
-    margin-bottom: 1vw;
 
-    font-style: normal;
-    font-weight: 400;
-    font-size: 1.04vw;
-    line-height: 1.30vw;
-    color: #865DF8;
-}
 
 textarea {
     width: 38.44vw;
@@ -207,12 +239,13 @@ option {
 }
 
 .but_post {
-    width: 19.38vw;
+    flex: none;
+    width: 13.38vw;
     height: 2.86vw;
 
-
+margin-left: 1vw;
     background: #865DF8;
-    border-radius: 1.56vw;
+    border-radius: 0.5vw;
     font-size: 1.04vw;
     color: white;
     padding: 0.52vw;
@@ -298,291 +331,8 @@ a {
     padding: 1.04vw;
 }
 
-.sidebar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 18.23vw;
-    height: 100%;
-    background-color: #865DF8;
-    padding: 1.04vw;
-    border-radius: 0vw 1.56vw 0vw 1.56vw;
-    box-shadow: 0.10vw 0 0.26vw rgba(0, 0, 0, 0.1);
-}
-
-.sidebar a {
-    display: block;
-    padding: 0.52vw 0;
-    color: #ffffff;
-    text-decoration: none;
-}
-
-.sidebar a:hover {}
-
-
-
-
-
-
-.avatar_block_nav {
-    width: 11.20vw;
-    height: 11.20vw;
-}
-
-.links_nav {
-    margin-top: 3.65vw;
-}
-
-.logo {
-
-    width: 11.20vw;
-    height: 1.51vw;
-
-
-    margin-bottom: 4.17vw;
-    margin-top: -1.60vw;
-
-}
-
-.links_page,
-.exit_link_nav {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    margin-bottom: 1.77vw;
-    margin-left: 2.60vw;
-}
-
-.icon_link {
-    padding-right: 1.41vw;
-    width: 1.82vw;
-    height: 1.72vw;
-}
-
-.name_link,
-.exit_link {
-    width: 9.22vw;
-    font-weight: 400;
-    font-size: 1.04vw;
-    line-height: 1.30vw;
-    color: #FFFFFF;
-}
-
-.exit_link_nav {
-    margin-top: 7.21vw;
-}
-
-
-
-.bckgr {
-    position: relative;
-    z-index: -30;
-}
-
-.backgr_main {
-    /* position: absolute; */
-    position: fixed;
-    margin-left: 13.02vw;
-    margin-top: -10.42vw;
-    width: 51.72vw;
-    height: 51.04vw;
-}
-
-.bckgr2 {
-    position: relative;
-    z-index: -30;
-}
-
-.backgr_main2 {
-    /* position: absolute; */
-    position: fixed;
-
-    margin-top: 31.25vw;
-    width: 51.72vw;
-    height: 51.04vw;
-}
-
-
-.name_cart {
-    margin-left: 55.90vw;
-    margin-bottom: 2.60vw;
-    margin-top: 2.08vw;
-    display: flex;
-    justify-content: center;
-    background: #865DF8;
-    border-radius: 1.56vw;
-    font-weight: 300;
-    font-size: 1.04vw;
-    line-height: 1.30vw;
-    color: #FFFFFF;
-    align-items: center;
-
-}
-
-.name_cart p {
-    padding: 0.52vw 0.26vw;
-}
-
-@media ((min-width: 320px) and (max-width: 766px)) {
-    .menu_mob {
-        display: block;
-    }
-
-    .sidebar {
-        display: none;
-    }
-
-    .popup {
-        display: none;
-    }
-
-    .block5 {
-        display: none;
-    }
-
-    .menu_mob {
-        display: block;
-        width: 13vw;
-        height: 5vw;
-        margin-top: -6vw;
-        margin-left: 1vw;
-        margin-bottom: 8vw;
-
-    }
-
-    .name_cart {
-        margin-left: 65vw;
-        width: 30.25vw;
-        height: 4.25vw;
-        background: #865DF8;
-        border-radius: 5vw;
-        font-weight: 300;
-        font-size: 3vw;
-        line-height: 1.30vw;
-        color: #FFFFFF;
-        align-items: center;
-
-    }
-
-    .content {
-        margin-left: 0.05vw;
-    }
-
-    label {
-        margin-top: 1.56vw;
-        display: block;
-        margin-bottom: 1vw;
-        width: 40vw;
-        font-style: normal;
-        font-weight: 400;
-        font-size: 3vw;
-        line-height: 3vw;
-        color: #865DF8;
-    }
-
-    .in_name_category {
-        margin-top: 1vw;
-        width: 92vw;
-        height: 3vw;
-        background: #F3EFFE;
-        border-radius: 4vw;
-        margin-bottom: 4vw;
-        padding: 2vw;
-        font-size: 3vw;
-        border: none;
-    }
-
-    .upload-btn {
-        background: none;
-    }
-
-    .rrr {
-        width: 46.88vw;
-        height: 25vw;
-        margin-top: 4vw;
-        margin-left: -2vw;
-    }
-
-    .but_post {
-        width: 20.38vw;
-        height: 5vw;
-
-        background: #865DF8;
-        border-radius: 1.56vw;
-        font-size: 2vw;
-        color: white;
-        padding: 0.52vw;
-        border: none;
-        cursor: pointer;
-        font-family: 'Unbounded';
-        margin-top: 2.60vw;
-    }
-
-
-
-
-    .category_delete {
-        display: flex;
-        flex-direction: column;
-        gap: 1.5vw;
-        margin-top: 5vw;
-    }
-
-    .categ {
-        width: 93.75vw;
-        display: flex;
-        height: 6vw;
-        background: #F2EDFE;
-        border-radius: 5vw;
-        font-size: 2vw;
-        padding-left: 1.56vw;
-    }
-
-
-    .categ a {
-        text-decoration: none;
-        font-size: 2vw;
-        line-height: 1.30vw;
-        color: #865DF8;
-        margin-left: 72vw;
-        margin-top: 2vw;
-
-    }
-
-    .texr-post {
-
-        padding: 3vw;
-        width: 85vw;
-        height: 30vw;
-        font-size: 3vw;
-    }
-
-    select {
-        width: 90vw;
-        height: 10vw;
-        font-size: 3vw;
-    }
-
-    option {
-        font-size: 3vw;
-    }
-
-    .upload-btn img {
-        width: 60vw;
-        height: 30vw;
-
-    }
-
-    .but_post {
-        width: 40vw;
-        font-size: 3vw;
-        height: 10vw;
-        border-radius: 30vw;
-    }
-
-    label {
-        margin-top: 3vw;
-        margin-bottom: 5vw;
-    }
+.container {
+    padding-left: 0.2vw;
+    padding-right: 3.91vw;
 }
 </style>

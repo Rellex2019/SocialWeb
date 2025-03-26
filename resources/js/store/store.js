@@ -28,7 +28,13 @@ const authStore = {
                 state.user = JSON.parse(user);
                 state.isAuthenticated = isAuthenticated === 'true';
             }
-        }
+        },
+        updateAvatar(state, newAvatarPath) {
+            if (state.user && state.user.user_info) {
+                state.user.user_info.avatar = newAvatarPath;
+                localStorage.setItem('user', JSON.stringify(state.user));
+            }
+        },
     },
     actions: {
     },

@@ -1,123 +1,113 @@
 <template>
     <SideMenu />
-    <div class="content" id="content">
-        <div class="bckgr">
-            <img :src="linkApp + '/img/back.png'" alt="" class="backgr_main">
-        </div>
-        <div class="bckgr2">
-            <img :src="linkApp + '/img/back2.png'" alt="" class="backgr_main2">
-        </div>
-        <div class="name_cart">
-            <p>Мои друзья</p>
-        </div>
-        <a href=""><img class="menu_mob" :src="linkApp + '/img/icons/menu_mob.png'" alt=""></a>
+    <div class="content">
+        <div class="container">
+            <div class="block1">
+                <div class="category_slide">
+                    <button @click="showContent('friends')" :class="{ active: activeTab === 'friends' }"
+                        class="switch">Друзья</button>
+                    <button @click="showContent('requests')" :class="{ active: activeTab === 'requests' }"
+                        class="switch">Заявки</button>
+                    <button @click="showContent('search')" :class="{ active: activeTab === 'search' }"
+                        class="switch">Поиск</button>
 
+                    <div class="content2">
+                        <!-- Friends  -->
+                        <div v-show="activeTab === 'friends'">
+                            <div class="search-container">
+                                <img :src="linkApp + '/img/friends_img/search.png'" alt="Search" class="search">
+                                <input type="text" v-model="searchInput" @input="startFilter" class="search-input"
+                                    placeholder="Введите имя и фамилию">
+                            </div>
 
-
-        <input v-model="searchInput" @input="startFilter" type="text" id="searchInput" class="search-input"
-            placeholder="Введите имя и фамилию">
-
-
-        <div class="friends_content">
-            <div class="friends">
-
-
-                <div class="but_categories1">
-                    <button class="but_categories" id="applicantsBtn" @click="showContent('applicants')">Мои
-                        друзья</button>
-                    <button class="but_categories" id="completedBtn" @click="showContent('completed')">Заявки</button>
-                    <button style="margin-top: 15px;" class="but_categories" id="searchBtn"
-                        @click="showContent('search')">Поиск</button>
-                </div>
-
-
-                <div class="contents" id="contentBlock">
-
-                    <div id="applicantsContent">
-
-                        <div v-for="friend in searchInput ? filteredFriends : friends" class="name_chat">
-                            <div style="display: flex; align-items: center;">
-                                <img class="img_avatar" v-if="friend.user_info && friend.user_info.avatar"
-                                    :src="linkApp + '/storage/' + friend.user_info.avatar" alt="">
-                                <img class="img_avatar" v-else :src="linkApp + '/img/img_acc.jpg'" alt="">
-                                <div class="chats" @click="$router.push(`/profile/${friend.id}`)">
-                                    <p class="name_chat_f">{{ friend.user_info.name + ' ' + friend.user_info.surname }}
-                                    </p>
-                                    <p class="citata" v-if="friend.user_info.quote">{{ friend.user_info.quote }}</p>
-                                    <p class="citata" v-else>К несчатью цитатки нет</p>
+                            <div v-if="filteredFriends.length > 0">
+                                <div v-for="friend in filteredFriends" :key="friend.id" class="my_friend">
+                                    <img v-if="friend.user_info.avatar"
+                                        :src="linkApp + '/storage/' + friend.user_info.avatar" alt=""
+                                        class="avatar_friend">
+                                    <img v-else :src="linkApp + '/img/img_acc.jpg'" alt="" class="avatar_friend">
+                                    <div class="name_my_friend">
+                                        <p class="friend_name">{{ friend.user_info.name }} {{ friend.user_info.surname
+                                            }}</p>
+                                        <p class="quote_friend">{{ friend.user_info.quote || 'цитата' }}</p>
+                                    </div>
+                                    <img @click="openChat(friend.id, friend.chats?.id)"
+                                        :src="linkApp + '/img/welcome_img/icon_link_page_1.png'" alt="Message"
+                                        class="icon_mess">
+                                    <img @click="deleteFriend(friend.id)" :src="linkApp + '/img/welcome_img/close.png'"
+                                        alt="Reject" class="icon_mess">
                                 </div>
                             </div>
-                            <img class="img_chat" @click="deleteFriend(friend.id)"
-                                :src="linkApp + '/img/icons/deleet_fr.png'" alt="">
+                            <div v-else class="no-friends">
+                                <p>Друзей не найдено</p>
+                            </div>
                         </div>
-                    </div>
 
-                    <div id="completedContent">
-
-                        <p>Заяки в друзья</p>
-                        <div v-if="friendRequest.length<1"> Вам пока что никто не отправил запрос дружбы :(</div>
-                        <div v-for="request in friendRequest" class="name_chat">
-                            <div style="display: flex; align-items: center;">
-                                <img class="img_avatar" v-if="request.avatar"
-                                    :src="linkApp + '/storage/' + request.avatar" alt="">
-                                <img class="img_avatar" v-else :src="linkApp + '/img/img_acc.jpg'" alt="">
-                                <a @click="$router.push(`/profile/${request.id}`)">
-                                    <div class="chats">
-                                        <p class="name_chat_f">{{ request.name + ' ' + request.surname }}
-                                        </p>
-                                        <p class="citata" v-if="request.quote">{{ request.quote }}</p>
-                                        <p class="citata" v-else>Бедолага без цитаты</p>
+                        <!-- Requests -->
+                        <div v-show="activeTab === 'requests'">
+                            <div v-if="friendRequest.length > 0">
+                                <p class="no-requests">Входящие заявок</p>
+                                <div v-for="request in friendRequest" :key="request.id" class="my_friend">
+                                    <img v-if="request.avatar" :src="linkApp + '/storage/' + request.avatar" alt=""
+                                        class="avatar_friend">
+                                    <img v-else :src="linkApp + '/img/img_acc.jpg'" alt="" class="avatar_friend">
+                                    <div class="name_my_friend">
+                                        <p class="friend_name">{{ request.name }} {{ request.surname }}</p>
+                                        <p class="quote_friend">{{ request.quote || 'цитата' }}</p>
                                     </div>
-                                </a>
-                            </div>
-                            <div class="but_zayav">
-                                <a @click="sendRequestToFriend(request.id)" class="add_but">добавить</a>
-                                <a @click="deleteRequestToFriend(request.id)" class="reject_but">отклонить</a>
-                            </div>
-                        </div>
-
-
-                        <p>Отправленные заявки</p>
-                        <div v-if="sentRequest.length<1"> Вы ещё не отправили запрос дружбы :(</div>
-                        <div v-for="request in sentRequest" class="name_chat">
-                            <div style="display: flex; align-items: center;">
-                                <img class="img_avatar" v-if="request.avatar"
-                                    :src="linkApp + '/storage/' + request.avatar" alt="">
-                                <img class="img_avatar" v-else :src="linkApp + '/img/img_acc.jpg'" alt="">
-                                <a @click="$router.push(`/profile/${request.id}`)">
-                                    <div class="chats">
-                                        <p class="name_chat_f">{{ request.name + ' ' + request.surname }}
-                                        </p>
-                                        <p class="citata" v-if="request.quote">{{ request.quote }}</p>
-                                        <p class="citata" v-else>Бедолага без цитаты</p>
-                                    </div>
-                                </a>
-                            </div>
-                            <div class="but_zayav">
-                                <a @click="deleteRequestToFriend(request.id)" class="add_but">Отменить заявку</a>
-                            </div>
-                        </div>
-
-                    </div>
-
-                    <div id="searchContent">
-                        <div v-for="friend in searchInput ? filteredPeople : allPeople" class="name_chat">
-                            <div style="display: flex; align-items: center;">
-                                <img class="img_avatar" v-if="friend.user_info && friend.user_info.avatar"
-                                    :src="linkApp + '/storage/' + friend.user_info.avatar" alt="">
-                                <img class="img_avatar" v-else :src="linkApp + '/img/img_acc.jpg'" alt="">
-                                <div class="chats">
-                                    <p class="name_chat_f">{{ friend.user_info.name + ' ' + friend.user_info.surname }}
-                                    </p>
-                                    <p class="citata" v-if="friend.user_info.quote">{{ friend.user_info.quote }}</p>
-                                    <p class="citata" v-else>К несчатью цитатки нет</p>
+                                    <div @click="sendRequestToFriend(request.id)" class="accept">✓</div>
+                                    <img @click="deleteRequestToFriend(request.id)"
+                                        :src="linkApp + '/img/welcome_img/close.png'" alt="Reject" class="icon_mess">
                                 </div>
                             </div>
-                            <button @click="deleteRequestToFriend(friend.id)" v-if="checkIdExists(friend.id)"
-                                class="add_but">Отменить заявку</button>
-                            <button @click="sendRequestToFriend(friend.id)" v-else class="add_but">Добавить</button>
+                            <div v-if="sentRequest.length > 0">
+                                <p class="no-requests">Отправленные</p>
+                                <div v-for="request in sentRequest" :key="request.id" class="my_friend">
+                                    <img v-if="request.avatar" :src="linkApp + '/storage/' + request.avatar" alt=""
+                                        class="avatar_friend">
+                                    <img v-else :src="linkApp + '/img/img_acc.jpg'" alt="" class="avatar_friend">
+                                    <div class="name_my_friend">
+                                        <p class="friend_name">{{ request.name }} {{ request.surname }}</p>
+                                        <p class="quote_friend">{{ request.quote || 'цитата' }}</p>
+                                    </div>
+                                    <img @click="deleteRequestToFriend(request.id)"
+                                        :src="linkApp + '/img/welcome_img/close.png'" alt="Reject" class="icon_mess">
+                                </div>
+                            </div>
+                            <div v-else class="no-requests">
+                                <p>Нет активных заявок</p>
+                            </div>
                         </div>
 
+
+
+                        <!-- Search  -->
+                        <div v-show="activeTab === 'search'">
+                            <div class="search-container">
+                                <img :src="linkApp + '/img/friends_img/search.png'" alt="Search" class="search">
+                                <input type="text" v-model="searchInput" @input="startFilter" class="search-input"
+                                    placeholder="Введите имя и фамилию">
+                            </div>
+
+                            <div v-if="filteredPeoples.length > 0">
+                                <div v-for="friend in filteredPeoples" :key="friend.id" class="my_friend">
+                                    <img v-if="friend.user_info.avatar"
+                                        :src="linkApp + '/storage/' + friend.user_info.avatar" alt=""
+                                        class="avatar_friend">
+                                    <img v-else :src="linkApp + '/img/img_acc.jpg'" alt="" class="avatar_friend">
+                                    <div class="name_my_friend">
+                                        <p class="friend_name">{{ friend.user_info.name }} {{ friend.user_info.surname
+                                            }}</p>
+                                        <p class="quote_friend">{{ friend.user_info.quote || 'цитата' }}</p>
+                                    </div>
+                                    <div @click="sendRequestToFriend(friend.id)" class="text_search">Отправить заявку
+                                    </div>
+                                </div>
+                            </div>
+                            <div v-else class="no-friends">
+                                <p>Мы не смогли найти друзей по вашему запросу</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -126,112 +116,50 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex';
+import axios from 'axios';
 import SideMenu from '../components/sideMenu.vue';
 
 export default {
     name: 'Friends',
+    components: {
+        SideMenu
+    },
     data() {
         return {
             linkApp: '',
+            activeTab: 'friends',
+            searchInput: '',
             friends: [],
             filteredFriends: [],
-            searchInput: '',
-            filteredPeople: [],
-            allPeople: [],
             friendRequest: [],
-
             sentRequest: [],
-
+            filteredPeoples: [],
+            peoples: [],
         }
-    },
-    components:
-    {
-        SideMenu
     },
     methods: {
         showContent(section) {
-            const applicantsBtn = document.getElementById('applicantsBtn');
-            const completedBtn = document.getElementById('completedBtn');
-            const searchBtn = document.getElementById('searchBtn');
-            const applicantsContent = document.getElementById('applicantsContent');
-            const completedContent = document.getElementById('completedContent');
-            const searchContent = document.getElementById('searchContent');
-
-            if (section === 'applicants') {
-                applicantsContent.style.display = 'block';
-                completedContent.style.display = 'none';
-                searchContent.style.display = 'none';
-                applicantsBtn.classList.add('active');
-                completedBtn.classList.remove('active');
-                searchBtn.classList.remove('active');
-            } else if (section === 'completed') {
-                completedContent.style.display = 'block';
-                applicantsContent.style.display = 'none';
-                searchContent.style.display = 'none';
-                completedBtn.classList.add('active');
-                searchBtn.classList.remove('active');
-                applicantsBtn.classList.remove('active');
-            } else if (section === 'search') {
-                searchContent.style.display = 'block';
-                completedContent.style.display = 'none';
-                applicantsContent.style.display = 'none';
-                searchBtn.classList.add('active');
-                completedBtn.classList.remove('active');
-                applicantsBtn.classList.remove('active');
-            }
+            this.activeTab = section;
         },
         async getFriends() {
-            await axios.get('/friend').then(response => {
-                this.friends = response.data;
-            })
+            const response = await axios.get('/friend');
+            this.friends = response.data;
+            this.filteredFriends = this.friends; // Изначально отображаем всех друзей
+        },
+        async getRequestsFromFriends() {
+            const response = await axios.get('/friend/get_friend_request');
+            this.friendRequest = response.data.users;
+        },
+        async getRequestsToFriend() {
+            const response = await axios.get('/friend/get_user_request');
+            this.sentRequest = response.data.users;
         },
         async getPeople() {
             await axios.get('/people').then(response => {
-                this.allPeople = response.data;
+                this.peoples = response.data;
+                this.filteredPeoples = this.peoples;
             })
-                .catch((error) => {
-                    this.allPeople = error.response;
-                })
-        },
-        async getRequestsFromFriends() {
-            await axios.get('/friend/get_friend_request').then(response => {
-                this.friendRequest = response.data.users;
-            })
-        },
-        async getRequestsToFriend() {
-            await axios.get('/friend/get_user_request').then(response => {
-                this.sentRequest = response.data.users;
-            })
-        },
-        deleteFriend(id) {
-            axios.delete(`/friend/${id}/delete`, {})
-                .then(response => {
-                    this.getFriends();
-                    this.startFilter();
-                })
-        },
-        sendRequestToFriend(id) {
-            axios.post('/friend/send_friend_request', { 'id': id })
-                .then(response => {
-
-                    if (response.data.user) {
-                        this.sentRequest.push(response.data.user);
-                    }
-                    if (response.data.id) {
-                        this.friendRequest = this.friendRequest.filter(request => { return request.id != response.data.id });
-                        this.getFriends();
-                    }
-
-                    console.log(this.sentRequest);
-                })
-        },
-        deleteRequestToFriend(id) {
-            axios.post(`/friend/delete_friend_request`, { 'id': id })
-                .then(response => {
-                    this.getRequestsFromFriends();
-                    this.sentRequest = this.sentRequest.filter(request => { return request.id != id });
-                    console.log(this.sentRequest);
-                })
         },
         startFilter() {
             const searchTerm = this.searchInput.toLowerCase();
@@ -239,656 +167,293 @@ export default {
                 const fullName = (friend.user_info.name + ' ' + friend.user_info.surname).toLowerCase();
                 return fullName.includes(searchTerm);
             });
-
-            this.filteredPeople = this.allPeople.filter(friend => {
-                const fullName = (friend.user_info.name + ' ' + friend.user_info.surname).toLowerCase();
+            this.filteredPeoples = this.peoples.filter(people => {
+                const fullName = (people.user_info.name + ' ' + people.user_info.surname).toLowerCase();
                 return fullName.includes(searchTerm);
             });
         },
-        checkIdExists(id) {
-            return this.sentRequest.some(request => request.id === id);
-        }
+        getFriendAvatar(friend) {
+            return friend.user_info && friend.user_info.avatar
+                ? `${this.linkApp}/storage/${friend.user_info.avatar}`
+                : `${this.linkApp}/img/welcome_img/avatar_account.png`;
+        },
+        async openChat(friendId, chatId) {
+            await axios.post(`/chat/${friendId}/message/`, { chatId })
+                .then(response => {
+                    this.$router.push(`/chat/${response.data.chatId}`)
+                })
+        },
+        deleteFriend(id) {
+            let confirm = window.confirm('Вы уверены что хотите удалить дргуа?');
+            if (confirm) {
+                axios.delete(`/friend/${id}/delete`, {})
+                    .then(response => {
+                        this.getFriends();
+                        this.startFilter();
+                    })
+            }
+
+        },
+        sendRequestToFriend(id) {
+            axios.post('/friend/send_friend_request', { 'id': id })
+                .then(response => {
+
+                    if (response.data.user) {
+                        this.sentRequest.push(response.data.user);
+                        this.filteredPeoples = this.filteredPeoples.filter(people => { return people.id != response.data.user.id });
+
+                    }
+                    if (response.data.id) {
+                        this.friendRequest = this.friendRequest.filter(request => { return request.id != response.data.id });
+                        this.getFriends();
+                    }
+
+                })
+        },
+        deleteRequestToFriend(id) {
+            axios.post(`/friend/delete_friend_request`, { 'id': id })
+                .then(response => {
+                    this.getRequestsFromFriends();
+                    this.getPeople();
+                    this.sentRequest = this.sentRequest.filter(request => { return request.id != id });
+                })
+        },
     },
     created() {
-        this.linkApp = `${import.meta.env.VITE_APP_URL}`;
+        this.linkApp = import.meta.env.VITE_APP_URL;
+        this.getPeople();
+        this.getFriends();
+        this.getRequestsFromFriends();
+        this.getRequestsToFriend();
     },
     mounted() {
         this.startFilter();
-        this.showContent('applicants');
-        this.getRequestsToFriend();
-        this.getFriends();
-        this.getPeople();
-        this.getRequestsFromFriends();
+        this.showContent('friends');
     }
 }
 </script>
+
 <style scoped>
-.btn {
-    padding: 5px 10px 5px 10px;
-    width: auto;
-    height: 2vw;
-    border: 1px solid #865DF8;
-    border-radius: 1vw;
-    text-align: center;
+.text_search {
+    cursor: pointer;
+    font-size: 1.1vw;
+    color: #FFFFFF;
 }
 
-.search-container {
+.accept {
+    cursor: pointer;
+    font-size: 2.6vw;
+    color: white;
+    margin-right: 2vw;
+    transition: 0.3s;
+}
+
+.accept:hover {
+    color: #181C22;
+    font-size: 2.8vw;
+}
+
+/* Base Styles */
+.content {
+    margin-left: 20.83vw;
+    padding: 1.04vw;
+}
+
+.container {
+    padding-left: 2.86vw;
+    padding-right: 3.91vw;
+}
+
+/* Header Styles */
+.block1 {
+    margin-top: 2.08vw;
     display: flex;
-    /* Rectangle 27 */
-
-
-    width: 44.95vw;
-    height: 2.60vw;
-
-
-
-
+    flex-direction: row;
+    justify-content: space-between;
 }
 
-.search-icon {
-
-    position: absolute;
-    margin-right: 0.78vw;
-    margin-left: 0.52vw;
-    margin-top: 0.26vw;
+/* Tabs Styles */
+.switch {
+    width: 7.50vw;
+    font-weight: 400;
+    font-size: 1.30vw;
+    line-height: 2.08vw;
+    color: #C68DFE;
+    background-color: #181C22;
+    border: none;
+    margin-right: 1.56vw;
+    cursor: pointer;
+    transition: all 0.3s ease;
 }
 
-.search-icon img {
-    width: 2.14vw;
-    height: 2.14vw;
+.switch:hover {
+    opacity: 0.8;
+}
 
+.switch.active {
+    text-decoration: underline;
+    text-underline-offset: 0.52vw;
+}
+
+.content2 {
+    margin-top: 1.04vw;
+    padding: 0.52vw;
+}
+
+/* Search Styles */
+.search-container {
+    position: relative;
+    margin-bottom: 2.60vw;
 }
 
 .search-input {
     border: none;
     outline: none;
     width: 44.95vw;
-    padding-top: 0.52vw;
-    padding-bottom: 0.52vw;
-    padding-right: 1vw;
-    padding-left: 1vw;
+    padding: 0.52vw 4.69vw;
     font-family: 'Unbounded';
     font-style: normal;
     font-weight: 400;
     font-size: 1.25vw;
     line-height: 1.56vw;
-    border: 0.16vw solid #865DF8;
-    border-radius: 1.56vw;
-    margin-bottom: 2.60vw;
-
-}
-
-input::placeholder {
-
-    padding-left: 23.96vw;
-    color: rgba(134, 93, 248, 0.59);
-}
-
-
-.name_chat {
-    cursor: pointer;
-    display: flex;
-    margin-bottom: 0.78vw;
-    width: 50vw;
-    height: 7.19vw;
-    align-items: center;
-    justify-content: space-between;
-    border-radius: 1.56vw;
-}
-
-.name_chat_f {
-    cursor: pointer;
-    font-size: 1.25vw;
-    line-height: 1.56vw;
-    color: #865DF8;
-}
-
-.citata {
-
-    max-width: 31.46vw;
-    text-wrap: nowrap;
-    word-break: break-all;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    font-family: 'Unbounded';
-    font-style: normal;
-    font-weight: 400;
-    font-size: 0.83vw;
-    line-height: 1.04vw;
-    color: rgba(134, 93, 248, 0.47);
-}
-
-.img_chat {
-    cursor: pointer;
-    margin-left: -0.26vw;
-    width: 2.1vw;
-    height: 2.1vw;
-}
-
-.img_avatar {
-    cursor: pointer;
-    border-radius: 2.7vw;
-    width: 5.36vw;
-    height: 5.36vw;
-    margin-top: 0.78vw;
-}
-
-.chats {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-around;
-    margin-left: 1.04vw;
-    margin-top: 0.52vw;
-}
-
-.text_chat {
-    margin-top: -0.52vw;
-}
-
-a {
-    text-decoration: none;
-}
-
-
-
-
-.active {
-    text-decoration: underline;
-
-}
-
-.content {
-    margin-top: 1.04vw;
-    padding: 0.52vw;
-}
-
-.but_categories {
-    border-radius: 1.56vw;
-    background-color: #F2EDFE;
-    border: none;
-    padding: 1.04vw;
-
-    font-family: 'Unbounded';
-    font-style: normal;
-    font-weight: 400;
-    font-size: 1.04vw;
-    line-height: 1.30vw;
-    color: #865DF8;
-
-}
-
-#applicantsContent,
-#completedContent {
-    display: none;
-}
-
-.but_categories1 {
-    margin-left: 54.69vw;
-    margin-top: -5.73vw;
-    display: flex;
-    flex-direction: column;
-    background: #F2EDFE;
-    border-radius: 1.56vw;
-
-    width: 15.63vw;
-    height: 6.20vw;
-
-
-}
-
-.but_zayav {
-    cursor: pointer;
-}
-
-.add_but {
-    cursor: pointer;
-    padding: 0.5vw 1vw;
-    display: flex;
-    justify-content: center;
-    min-width: 10.42vw;
-    height: 2.08vw;
-    background: #865DF8;
-    border-radius: 1.56vw;
-    font-weight: 300;
-    font-size: 1.04vw;
-    line-height: 1.30vw;
-    color: #FFFFFF;
-    align-items: center;
-    margin-bottom: 0.52vw;
-}
-
-.reject_but {
-    font-weight: 300;
-    font-size: 1.04vw;
-    line-height: 1.30vw;
-    color: #865DF8;
-    margin-left: 2.08vw;
-}
-
-.friend_table {
-    position: fixed;
-    width: 22.03vw;
-    height: 24.48vw;
-    background-color: #F2EDFE;
-    border-radius: 1.56vw;
-
-    margin-left: 49.48vw;
-    margin-top: -19.79vw;
-}
-
-.main_title_friends {
-    width: 15.63vw;
-    font-weight: 400;
-    font-size: 1.04vw;
-    line-height: 1.30vw;
-    color: #865DF8;
-    margin-left: 1.56vw;
-    margin-top: 1.30vw;
-    margin-bottom: 1.56vw;
-}
-
-.one_friend {
-    margin-top: 0.83vw;
-    margin-left: 1.04vw;
-    width: 19.22vw;
-
+    border: 0.05vw solid #C68DFE;
     border-radius: 0.52vw;
+    background-color: #181C22;
+    color: #fff;
+}
+
+.search-input::placeholder {
+    font-weight: 400;
+    font-size: 1.04vw;
+    line-height: 1.56vw;
+    color: rgba(255, 255, 255, 0.68);
+}
+
+.search {
+    width: 1.82vw;
+    height: 1.82vw;
+    position: absolute;
+    top: 50%;
+    left: 0.52vw;
+    transform: translateY(-50%);
+}
+
+/* Friends List Styles */
+.my_friend {
     display: flex;
     flex-direction: row;
-    justify-content: space-between;
     align-items: center;
+    margin-bottom: 1.51vw;
+    padding: 0.52vw;
+    transition: all 0.3s ease;
+}
 
-    padding-left: 0.42vw;
-    padding-right: 0.42vw;
+.my_friend:hover {
+    background-color: rgba(198, 141, 254, 0.1);
+    border-radius: 0.52vw;
 }
 
 .avatar_friend {
-    width: 3.65vw;
-    height: 3.65vw;
+    width: 4.17vw;
+    height: 4.17vw;
+    border-radius: 50%;
+    object-fit: cover;
 }
 
-.name_friend {
-    width: 9.11vw;
+.name_my_friend {
+    display: flex;
+    flex-direction: column;
+    margin-left: 1.77vw;
+    gap: 0.52vw;
+}
+
+.friend_name {
     font-weight: 400;
-    font-size: 0.73vw;
-    line-height: 0.89vw;
-    color: #865DF8;
-    margin-bottom: 0.78vw;
+    font-size: 1.25vw;
+    line-height: 1.56vw;
+    color: #FFFFFF;
 }
 
 .quote_friend {
+    width: 26.67vw;
     font-weight: 400;
-    font-size: 0.63vw;
-    line-height: 0.78vw;
-    color: rgba(134, 93, 248, 0.47);
-
+    font-size: 1.04vw;
+    line-height: 1.30vw;
+    color: rgba(255, 255, 255, 0.3);
 }
 
-.avatar_icon {
+.icon_mess {
     width: 2.03vw;
     height: 1.93vw;
+    margin-left: auto;
+    cursor: pointer;
+    transition: all 0.3s ease;
 }
 
-.text_friend {
-    margin-left: -3.13vw;
+.icon_mess:hover {
+    transform: scale(1.1);
 }
 
-
-.menu_mob {
-    display: none;
-
+/* Empty States */
+.no-friends,
+.no-requests {
+    font-size: 1.2vw;
+    padding: 2vw 0.2vw;
+    color: rgba(255, 255, 255, 0.5);
 }
 
-@media (max-width:320px) {
-    .menu_mob {
-        display: block;
-    }
-
+/* Mobile Styles */
+@media (max-width: 766px) {
     .content {
-        margin-left: 0.05vw;
+        margin-left: 0;
+        padding: 3vw;
     }
 
-    .sidebar {
-        display: none;
-    }
-
-    .popup {
-        display: none;
-    }
-
-    .block5 {
-        display: none;
-    }
-
-    .menu_mob {
-        display: block;
-        width: 13vw;
-        height: 5vw;
-        margin-top: -6vw;
-        margin-left: 1vw;
-        margin-bottom: 8vw;
-
-    }
-
-    .name_cart {
-        margin-left: 65vw;
-        width: 30.25vw;
-        height: 4.25vw;
-        background: #865DF8;
-        border-radius: 5vw;
-        font-weight: 300;
-        font-size: 3vw;
-        line-height: 1.30vw;
-        color: #FFFFFF;
-        align-items: center;
-
-    }
-
-    .search-icon {
-
-        position: absolute;
-        margin-right: 0.78vw;
-        margin-left: 2vw;
-        margin-top: 1.7vw;
-    }
-
-    .search-icon img {
-        width: 5vw;
-        height: 5vw;
-        margin-left: 2vw;
-
+    .switch {
+        font-size: 3.75vw;
+        margin-right: 3vw;
     }
 
     .search-input {
-        margin-left: 2vw;
-        width: 62.50vw;
-        padding-left: 7vw;
-        padding-top: 2vw;
-        padding-bottom: 2vw;
-
-        font-family: 'Unbounded';
-        font-style: normal;
-        font-weight: 400;
-        font-size: 2vw;
-        line-height: 1.56vw;
-        border: 0.16vw solid #865DF8;
-        border-radius: 5vw;
-        margin-bottom: 2.60vw;
-
-    }
-
-    input::placeholder {
-
-        padding-left: 30vw;
-        color: rgba(134, 93, 248, 0.59);
-    }
-
-
-    .name_chat {
-        margin-top: 10vw;
-        display: flex;
-        margin-bottom: 5vw;
-        width: 56.35vw;
-        height: 7.19vw;
-        background: none;
-        border-radius: 1.56vw;
-    }
-
-    .name_chat_f {
         width: 80vw;
-        font-size: 3vw;
-        line-height: 1vw;
-        color: #865DF8;
+        padding: 2vw 10vw;
+        font-size: 3.25vw;
+        border-radius: 1.52vw;
+        margin-bottom: 5vw;
     }
 
-    .citata {
-
-        width: 65vw;
-        height: 5vw;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        font-size: 2vw;
-        font-family: 'Unbounded';
-
-
-        color: rgba(134, 93, 248, 0.47);
+    .search-input::placeholder {
+        font-size: 3.25vw;
     }
 
-    .img_chat {
-        margin-left: -5vw;
-        margin-top: 5vw;
+    .search {
         width: 4vw;
         height: 4vw;
+        left: 3vw;
     }
 
-    .img_avatar {
-
-        width: 10vw;
-        height: 10vw;
-        margin-top: 0.78vw;
-        margin-left: 1.04vw;
+    .avatar_friend {
+        width: 13.44vw;
+        height: 13.44vw;
     }
 
-    .chat {
-        margin-top: 10vw;
-
+    .friend_name {
+        font-size: 3.75vw;
+        line-height: 5.31vw;
     }
 
-    .chats {
-        margin-left: 2vw;
-        margin-top: 0.52vw;
+    .quote_friend {
+        font-size: 3.04vw;
+        margin-top: 1vw;
     }
 
-    .text_chat {
-        margin-top: -0.52vw;
+    .icon_mess {
+        width: 8.75vw;
+        height: 9.38vw;
     }
 
-
-    .but_categories {
-        border-radius: 1.56vw;
-        background-color: #F2EDFE;
-        border: none;
-        padding: 2vw;
-
-        font-family: 'Unbounded';
-        font-style: normal;
-        font-weight: 400;
-        font-size: 2vw;
-        line-height: 1.30vw;
-        color: #865DF8;
-
+    .my_friend {
+        margin-bottom: 5vw;
     }
-
-    #applicantsContent,
-    #completedContent {
-        display: none;
-    }
-
-    .but_categories1 {
-        margin-left: 75vw;
-        margin-top: -11vw;
-        display: flex;
-        flex-direction: column;
-        background: #F2EDFE;
-        border-radius: 1.56vw;
-
-        width: 20vw;
-        height: 8vw;
-
-
-    }
-
-    .but_zayav {
-
-        margin-left: -15vw;
-    }
-
-    .add_but {
-        display: flex;
-        justify-content: center;
-        width: 15vw;
-        margin-left: 2vw;
-        height: 4vw;
-        background: #865DF8;
-        border-radius: 1.56vw;
-        font-weight: 300;
-        font-size: 2vw;
-        line-height: 1.30vw;
-        color: #FFFFFF;
-        align-items: center;
-
-        margin-bottom: -2vw;
-    }
-
-    .reject_but {
-
-        font-weight: 300;
-        font-size: 2vw;
-        line-height: 1.30vw;
-        color: #865DF8;
-        margin-left: 3vw;
-    }
-}
-
-body {
-    margin: 0;
-    font-family: "Unbounded", serif;
-    transition: background-color 0.3s ease;
-}
-
-.container {
-    display: flex;
-}
-
-h1,
-h2,
-h3,
-p,
-a {
-    font-family: "Unbounded", serif;
-
-}
-
-.content {
-    margin-left: 23.44vw;
-    padding: 1.04vw;
-}
-
-.sidebar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 18.23vw;
-    height: 100%;
-    background-color: #865DF8;
-    padding: 1.04vw;
-    border-radius: 0vw 1.56vw 0vw 1.56vw;
-    box-shadow: 0.10vw 0 0.26vw rgba(0, 0, 0, 0.1);
-}
-
-.sidebar a {
-    display: block;
-    padding: 0.52vw 0;
-    color: #ffffff;
-    text-decoration: none;
-}
-
-.avatar_block_nav {
-    width: 11.20vw;
-    height: 11.20vw;
-}
-
-.links_nav {
-    margin-top: 3.65vw;
-}
-
-.logo {
-    width: 11.20vw;
-    height: 1.51vw;
-    margin-bottom: 4.17vw;
-    margin-top: -1.60vw;
-
-}
-
-.links_page,
-.exit_link_nav {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    margin-bottom: 1.77vw;
-    margin-left: 2.60vw;
-}
-
-.icon_link {
-    padding-right: 1.41vw;
-    width: 1.82vw;
-    height: 1.72vw;
-}
-
-.name_link,
-.exit_link {
-    width: 9.22vw;
-    font-weight: 400;
-    font-size: 1.04vw;
-    line-height: 1.30vw;
-    color: #FFFFFF;
-}
-
-.exit_link_nav {
-    margin-top: 7.21vw;
-}
-
-
-
-.bckgr {
-    position: relative;
-    z-index: -30;
-}
-
-.backgr_main {
-    /* position: absolute; */
-    position: fixed;
-    margin-left: 13.02vw;
-    margin-top: -10.42vw;
-    width: 51.72vw;
-    height: 51.04vw;
-}
-
-.bckgr2 {
-    position: relative;
-    z-index: -30;
-}
-
-.backgr_main2 {
-    /* position: absolute; */
-    position: fixed;
-
-    margin-top: 31.25vw;
-    width: 51.72vw;
-    height: 51.04vw;
-}
-
-
-.name_cart {
-    margin-left: 59.90vw;
-    margin-bottom: 2.60vw;
-    margin-top: 2.08vw;
-    display: flex;
-    justify-content: center;
-    width: 10.42vw;
-    height: 2.08vw;
-    background: #865DF8;
-    border-radius: 1.56vw;
-    font-weight: 300;
-    font-size: 1.04vw;
-    line-height: 1.30vw;
-    color: #FFFFFF;
-    align-items: center;
-
-}
-
-.name_cart p {
-    padding: 0.52vw 0.26vw;
 }
 </style>

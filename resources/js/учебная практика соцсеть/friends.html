@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/nav.css">
+    <link rel="stylesheet" href="/css/friends.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@200..900&display=swap" rel="stylesheet">
+    <title>Document</title>
+</head>
+
+<body>
+    <div class="navbar">
+        <a href="/friends.html" class="nav-item">
+            <img src="/img/welcome_img/icon_link_page_3.png" alt="Друзья">
+        </a>
+        <a href="/chats.html" class="nav-item">
+            <img src="/img/welcome_img/icon_link_page_1.png" alt="Сообщения">
+        </a>
+        <a href="/category.html" class="nav-item">
+            <img src="/img/welcome_img/icon_category_mobile.png" alt="Категории">
+        </a>
+        <a href="/welcome.html" class="nav-item">
+            <img src="/img/welcome_img/Mask group.png" alt="Новости">
+        </a>
+    </div>
+
+    <div class="sidebar">
+        <div class="avatar_block">
+            <a href="/profile.html">
+                <img src="/img/welcome_img/avatar_block_nav.png" class="avatar_block_nav" alt="Фото">
+                <p class="name_user_nav">Лилия Блошкина</p>
+            </a>
+        </div>
+
+        <div class="container">
+            <div class="links_nav">
+                <div class="links_page">
+                    <img src="/img/welcome_img/icon_link_page_1.png" alt="" class="icon_link">
+                    <a href="/chats.html" class="name_link">Мои чаты</a>
+                </div>
+                <div class="links_page">
+                    <img src="/img/welcome_img/icon_link_page_2.png" alt="" class="icon_link">
+                    <a href="/welcome.html" class="name_link">Новости</a>
+                </div>
+                <div class="links_page">
+                    <img src="/img/welcome_img/icon_link_page_3.png" alt="" class="icon_link">
+                    <a href="/friends.html" class="name_link">Друзья</a>
+                </div>
+                <div class="links_page">
+                    <img src="/img/welcome_img/icon_link_page_4.png" alt="" class="icon_link">
+                    <a href="/new_post.html" class="name_link">Создать пост</a>
+                </div>
+                <div class="links_page">
+                    <img src="/img/welcome_img/icon_link_page_5.png" alt="" class="icon_link">
+                    <a href="/category.html" class="name_link">Категории</a>
+                </div>
+            </div>
+
+            <div class="exit_link_nav">
+                <img src="/img/welcome_img/icon_link_page_6.png" alt="" class="icon_link">
+                <a href="/auth.html" class="exit_link">Выход</a>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="content">
+        <div class="container">
+            <div class="block1">
+                <div class="category_slide">
+                    <button id="applicantsBtn" onclick="showContent('applicants')" class="switch">Друзья</button>
+                    <button id="completedBtn" onclick="showContent('completed')" class="switch">Заявки</button>
+
+                    <div class="content2" id="contentBlock">
+                        <div id="applicantsContent" class="main_title">
+                            <img src="/img/friends_img/search.png" alt="" class="search">
+                            <input type="text" id="searchInput" class="search-input"
+                                placeholder="Введите имя и фамилию">
+                            <div class="my_friend frr">
+                                <img src="/img/welcome_img/avatar_account.png" alt="" class="avatar_friend">
+                                <div class="name_my_friend">
+                                    <p class="friend_name">Орешина Виктория</p>
+                                    <p class="quote_friend">цитата</p>
+                                </div>
+                                <img src="/img/welcome_img/icon_link_page_1.png" alt="" class="icon_mess">
+                            </div>
+                            <div class="my_friend frr">
+                                <img src="/img/welcome_img/avatar_account.png" alt="" class="avatar_friend">
+                                <div class="name_my_friend">
+                                    <p class="friend_name">Орешина Виктория</p>
+                                    <p class="quote_friend">цитата</p>
+                                </div>
+                                <img src="/img/welcome_img/icon_link_page_1.png" alt="" class="icon_mess">
+                            </div>
+                            <div class="my_friend frr">
+                                <img src="/img/welcome_img/avatar_account.png" alt="" class="avatar_friend">
+                                <div class="name_my_friend">
+                                    <p class="friend_name">Орешина Виктория</p>
+                                    <p class="quote_friend">цитата</p>
+                                </div>
+                                <img src="/img/welcome_img/icon_link_page_1.png" alt="" class="icon_mess">
+                            </div>
+                            <div class="my_friend frr">
+                                <img src="/img/welcome_img/avatar_account.png" alt="" class="avatar_friend">
+                                <div class="name_my_friend">
+                                    <p class="friend_name">Орешина Виктория</p>
+                                    <p class="quote_friend">цитата</p>
+                                </div>
+                                <img src="/img/welcome_img/icon_link_page_1.png" alt="" class="icon_mess">
+                            </div>
+                            <div class="my_friend frr">
+                                <img src="/img/welcome_img/avatar_account.png" alt="" class="avatar_friend">
+                                <div class="name_my_friend">
+                                    <p class="friend_name">Орешина Виктория</p>
+                                    <p class="quote_friend">цитата</p>
+                                </div>
+                                <img src="/img/welcome_img/icon_link_page_1.png" alt="" class="icon_mess">
+                            </div>
+                        </div>
+                        <div id="completedContent" class="main_title2">
+                            <div class="my_friend zzz">
+                                <img src="/img/welcome_img/avatar_account.png" alt="" class="avatar_friend">
+                                <div class="name_my_friend">
+                                    <p class="friend_name">Орешина Виктория</p>
+                                    <p class="quote_friend">цитата</p>
+                                </div>
+                                <img src="/img/welcome_img/close.png" alt="" class="icon_mess">
+                            </div>
+                            <div class="my_friend zzz">
+                                <img src="/img/welcome_img/avatar_account.png" alt="" class="avatar_friend">
+                                <div class="name_my_friend">
+                                    <p class="friend_name">Орешина Виктория</p>
+                                    <p class="quote_friend">цитата</p>
+                                </div>
+                                <img src="/img/welcome_img/close.png" alt="" class="icon_mess">
+                            </div>
+                            <div class="my_friend zzz">
+                                <img src="/img/welcome_img/avatar_account.png" alt="" class="avatar_friend">
+                                <div class="name_my_friend">
+                                    <p class="friend_name">Орешина Виктория</p>
+                                    <p class="quote_friend">цитата</p>
+                                </div>
+                                <img src="/img/welcome_img/close.png" alt="" class="icon_mess">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="block1">
+                    <a href="/profile.html"></a><img src="/img/welcome_img/avatar_account.png" class="avatar_mobile" alt="">
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="/js/friends.js"></script>
+</body>
+
+</html>
