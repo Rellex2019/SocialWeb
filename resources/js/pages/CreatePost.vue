@@ -3,7 +3,7 @@
     <SideMenu />
     <div class="content" id="content">
         <div class="name_cart">
-            <p>{{Object.keys(localPost).length > 0 ?'Изменение поста': 'Новый пост'}}</p>
+            <p>{{ Object.keys(localPost).length > 0 ? 'Изменение поста' : 'Новый пост' }}</p>
         </div>
         <a href=""><img class="menu_mob" :src="linkApp + '/img/icons/menu_mob.png'" alt=""></a>
 
@@ -31,8 +31,9 @@
                     style="display: none;" @change="previewImage">
 
                 <img @click="openFileInput" v-if="fields.imagePreview" :src="fields.imagePreview" alt="">
-                <img @click="openFileInput" v-for="photo in localPost.photos" v-else-if="localPost.photos && localPost.photos.length>0"
-                    :src="linkApp + '/storage/' + photo.path" alt="">
+                <img @click="openFileInput" v-for="photo in localPost.photos"
+                    v-else-if="localPost.photos && localPost.photos.length > 0" :src="linkApp + '/storage/' + photo.path"
+                    alt="">
                 <img @click="openFileInput" v-else :src="linkApp + '/img/icons/add_foto.png'" alt="">
                 <button class="but_post" type="submit" v-if="Object.keys(localPost).length > 0">изменить</button>
                 <button class="but_post" type="submit" v-else>опубликовать</button>
@@ -132,7 +133,13 @@ export default {
         },
         initialField() {
             this.localPost = [];
-            this.fields = {};
+            this.fields = {
+                title: '',
+                body: '',
+                selectedCategory: 1,
+                imagePreview: null,
+                imageFile: null,
+            };
             if (this.post) {
                 this.localPost = (JSON.parse(this.post));
                 this.fields = { ...this.localPost };
@@ -166,7 +173,7 @@ export default {
     computed: {
         ...mapGetters('authStore', ['isAuthenticated', 'user']),
         isEditMode() {
-            return this.localPost?.id; 
+            return this.localPost?.id;
         }
     },
     mounted() {
